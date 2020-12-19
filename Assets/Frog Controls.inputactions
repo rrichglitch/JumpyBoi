@@ -1,0 +1,136 @@
+{
+    "name": "Frog Controls",
+    "maps": [
+        {
+            "name": "KB",
+            "id": "d39b2a66-fcfd-40da-890e-204804e87f5a",
+            "actions": [
+                {
+                    "name": "Menu",
+                    "type": "Button",
+                    "id": "101181d0-59fc-4e9a-a0da-589fe0012a54",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Jump",
+                    "type": "Value",
+                    "id": "4e2c2bf6-0844-4c24-a2ce-cf498118455d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "RotateBod",
+                    "type": "Value",
+                    "id": "c68ace70-531d-4e0e-828f-ee35e4badcb4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "9ddf61aa-db78-4ad6-9c86-d7753df19a98",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f7808e88-b60c-457f-b26b-091b5e579fbe",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Menu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4dc7d4e1-6ae1-4890-a3e4-7913c0fbcc7c",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RotateBod",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Sticks",
+            "id": "0934c6eb-a3ba-4fb8-b6a2-449c1b218159",
+            "actions": [
+                {
+                    "name": "Menu",
+                    "type": "Button",
+                    "id": "72ef3980-f65e-4dcf-8f65-bfc64d069747",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Jump",
+                    "type": "Value",
+                    "id": "187a3c40-a9e6-4e68-a2e3-95911b42356e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "RotateBod",
+                    "type": "Value",
+                    "id": "13319960-2590-4781-a5a7-bf091b616db3",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "aae533eb-4b03-40ee-a437-5bbb86517127",
+                    "path": "<Gamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Menu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "dc958856-7fdc-49e0-9554-f4882f6dec60",
+                    "path": "<Gamepad>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "840c4d03-fcc6-4952-8bd4-6f5124b71651",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RotateBod",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
