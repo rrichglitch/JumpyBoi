@@ -10,8 +10,8 @@ public class CamFollow : MonoBehaviour
     
     // Update is called once per frame
     void LateUpdate(){
-        target = CommonTools.getLead();
-        if(target)
-            transform.position = new Vector3(target.position.x, target.position.y,-10);
+        // target = CommonTools.getLead();
+        // if(target)
+        //     transform.position = new Vector3(target.position.x, target.position.y,-10);
     }
 }

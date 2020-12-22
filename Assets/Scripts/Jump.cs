@@ -29,17 +29,17 @@ public class Jump : MonoBehaviour
         if(jumping){
             for(int i = 0;i<HJs.Length;i++){
                 save = HJs[i].motor;
-                if(HJs[i].name == "calf")save.maxMotorTorque = 2000;
-                if(HJs[i].name == "Foot") save.motorSpeed = speed;
+                if(HJs[i].name == "Calf") save.motorSpeed = -speed;
+                else if(HJs[i].name == "Foot") save.motorSpeed = speed;
                 else save.motorSpeed = -speed;
                 HJs[i].motor = save;
             }
         }else{
             for(int i = 0;i<HJs.Length;i++){
                 save = HJs[i].motor;
-                if(HJs[i].name == "calf")save.maxMotorTorque = 5;
-                if(HJs[i].name == "Foot") save.motorSpeed = speed*(float)-.5;
-                else save.motorSpeed = speed*(float).5;
+                if(HJs[i].name == "Calf") save.motorSpeed = speed * (float).5;
+                else if(HJs[i].name == "Foot") save.motorSpeed = speed*(float)-.5;
+                else save.motorSpeed = 100;
                 HJs[i].motor = save;
             }
         }
