@@ -7,22 +7,24 @@ public class ShootTongue : MonoBehaviour
 {
     public float speed;
     public float tol;
-    public GameObject test;
-    private bool th = false;
-    private float startPosX;
-    public SpawnTongue st;
-    private bool moved;
-    void Awake(){startPosX = transform.localPosition.x;}
+    private Vector2 startPos;
+    void Awake(){startPos = transform.localPosition;}
     void OnTongue(InputValue value){
-        if(value.isPressed && transform.localPosition.x <= startPosX+tol){
-            th = true;
-            GetComponents<FixedJoint2D>()[0].enabled = false;
-            Vector2 vel = GetComponent<Rigidbody2D>().velocity;
-            vel = transform.TransformDirection(new Vector2(vel.x+speed,vel.y));
-            GetComponent<Rigidbody2D>().velocity = vel;
-            // Debug.Log(GetComponent<Rigidbody2D>().velocity);
+        if(value.isPressed){
+            if(transform.localPosition.magnitude < startPos.magnitude+tol){
+                GetComponent<FixedJoint2D>().enabled = false;
+                Vector2 vel = transform.InverseTransformDirection(GetComponent<Rigidbody2D>().velocity);
+                GetComponent<Rigidbody2D>().velocity = transform.TransformDirection(new Vector2(vel.x+speed,vel.y));
+            }
+            else{
+                FixedJoint2D[] fjs = GetComponents<FixedJoint2D>();
+                for(int i = 1;i<fjs.Length;i++)
+                    Destroy(fjs[i]);
+                GetComponentInChildren<Sticky>().stickOn = false;
+                StartCoroutine(unStick());
+            }
         }
-        else th = false;
     }
+    IEnumerator unStick(){yield return new WaitForSeconds(1); GetComponentInChildren<Sticky>().stickOn = true;}
     
 }

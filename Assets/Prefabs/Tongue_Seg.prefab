@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: 1845083033209367099}
   - component: {fileID: 217997869038035170}
   - component: {fileID: 1402564546413028366}
+  - component: {fileID: 3438317568937526760}
   - component: {fileID: 1086879719325014063}
-  - component: {fileID: 1426390227035475191}
   m_Layer: 8
   m_Name: Tongue_Seg
   m_TagString: Untagged
@@ -170,9 +170,9 @@ SliderJoint2D:
   serializedVersion: 4
   m_EnableCollision: 0
   m_ConnectedRigidBody: {fileID: 0}
-  m_BreakForce: Infinity
-  m_BreakTorque: Infinity
-  m_AutoConfigureConnectedAnchor: 0
+  m_BreakForce: 10000
+  m_BreakTorque: 10000
+  m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: 0, y: 0}
   m_ConnectedAnchor: {x: 0, y: 0}
   m_AutoConfigureAngle: 0
@@ -185,6 +185,24 @@ SliderJoint2D:
   m_TranslationLimits:
     m_LowerTranslation: 0
     m_UpperTranslation: 0
+--- !u!255 &3438317568937526760
+FixedJoint2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 208563332879416121}
+  m_Enabled: 0
+  serializedVersion: 4
+  m_EnableCollision: 0
+  m_ConnectedRigidBody: {fileID: 0}
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_AutoConfigureConnectedAnchor: 0
+  m_Anchor: {x: 0, y: 0}
+  m_ConnectedAnchor: {x: 0, y: 0}
+  m_DampingRatio: 0
+  m_Frequency: 0
 --- !u!58 &1086879719325014063
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -201,16 +219,3 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.16
---- !u!114 &1426390227035475191
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 208563332879416121}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 058520c1e7e0dee41bf0ad99fc661d07, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  breakForce: 60
