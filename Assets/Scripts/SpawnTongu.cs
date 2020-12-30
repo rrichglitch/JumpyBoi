@@ -8,40 +8,61 @@ public class SpawnTongu : MonoBehaviour
     public GameObject prefab;
     public float outScale;
     public float inScale;
+    public float speed;
+    public float tol;
     private bool th = false;
     private bool physd;
     private float width;
     private Vector2 startPos;
     public float retractGap;
     private float lastRetract = 0;
+    private Transform tip;
     private List<GameObject> tongueSegs = new List<GameObject>();
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start(){
         width = prefab.GetComponent<SpriteRenderer>().bounds.size.x;
+        startPos = transform.localPosition;
+        tip = transform.Find("Tongue_Tip");
     }
-    void OnTongue(InputValue value){th=value.isPressed;}
+
+    void OnTongue(InputValue value){
+        th=value.isPressed;
+        if(value.isPressed){
+            if(tongueSegs.Count == 0){
+                tip.GetComponent<FixedJoint2D>().enabled = false;
+                Vector2 vel = tip.InverseTransformDirection(tip.GetComponent<Rigidbody2D>().velocity);
+                tip.GetComponent<Rigidbody2D>().velocity = tip.TransformDirection(new Vector2(vel.x+speed,vel.y));
+            }
+            else{
+                FixedJoint2D[] fjs = tip.GetComponents<FixedJoint2D>();
+                for(int i = 1;i<fjs.Length;i++)
+                    Destroy(fjs[i]);
+                tip.GetComponentInChildren<Sticky>().stickOn = false;
+                StartCoroutine(unStick());
+            }
+        }
+    }
+    IEnumerator unStick(){yield return new WaitForSeconds(1); GetComponentInChildren<Sticky>().stickOn = true;}
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update(){
         if(th){
             //bind tip of tongue and start the body
             if(tongueSegs.Count < 1){
-                if(transform.Find("Tongue_Tip").localPosition.magnitude > width*inScale){
+                if(tip.localPosition.magnitude > width*inScale){
                     // Debug.Log("in");
-                    Vector3 spawnSpot = transform.Find("Tongue_Tip").localPosition;
+                    Vector3 spawnSpot = tip.localPosition;
                     spawnSpot.x -= width*inScale;
                     GameObject first = Instantiate(prefab, transform);
                     first.transform.localPosition = spawnSpot;
-                    transform.Find("Tongue_Tip").GetComponent<SliderJoint2D>().enabled = false;
+                    tip.GetComponent<SliderJoint2D>().enabled = false;
                     first.GetComponent<SliderJoint2D>().connectedBody = transform.parent.GetComponent<Rigidbody2D>();
-                    first.GetComponent<HingeJoint2D>().connectedBody = transform.Find("Tongue_Tip").GetComponent<Rigidbody2D>();
+                    first.GetComponent<HingeJoint2D>().connectedBody = tip.GetComponent<Rigidbody2D>();
                     tongueSegs.Add(first);
                 }
             }
             
-            //handle main body of tongue
+            //handle extending main body of tongue
             /*new idea:
             going beyond a simple if, spawn a number of segments appropriate for the current gap.
             while doing this there still needs to be some kind of implementation for presering orientation...'
@@ -51,7 +72,7 @@ public class SpawnTongu : MonoBehaviour
                 //wee helper method to set the segment second to last as "next", use it before ever using "next"
                 void setNext(){
                     if(tongueSegs.Count > 1) next = tongueSegs[tongueSegs.Count-2];
-                    else next = transform.Find("Tongue_Tip").gameObject;
+                    else next = tip.gameObject;
                 }
                 Vector2 lPos = tongueSegs[tongueSegs.Count-1].transform.localPosition;
                 for(int lc = 0;lPos.magnitude > width*outScale && tongueSegs.Count < 100 && lc <100;lc++){
@@ -62,7 +83,6 @@ public class SpawnTongu : MonoBehaviour
                         spawnSpot.y -= width*outScale;
                     GameObject last = Instantiate(prefab, transform);
                     last.transform.localPosition = spawnSpot;
-                    startPos = spawnSpot;
                     tongueSegs.Add(last);
                     setNext();
                     last.GetComponent<HingeJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
@@ -87,36 +107,28 @@ public class SpawnTongu : MonoBehaviour
             }
         }
 
-
+        //retract tonue
         else{
             if(physd){
-                if(tongueSegs.Count > 1){
+                if(tongueSegs.Count >= 1){
                     GameObject last = tongueSegs[tongueSegs.Count-1];
                     Vector2 lPos = last.transform.localPosition;
                     if(Time.time - lastRetract >= retractGap){
-                        GameObject next = tongueSegs[tongueSegs.Count-2];
-                        Vector2 spot = transform.position;
-                        // for(int i = tongueSegs.Count-2; i > tongueSegs.Count-4 && i > 0; i--)
-                        //     tongueSegs[i].GetComponent<SliderJoint2D>().enabled = true;
-                        //find alternative method that actually exerts force from the head upon the tongue
-                        // simply calculate proper force vector and then use addForce on the tongue and add the inverse to the head
-                        next.GetComponent<Rigidbody2D>().MovePosition(spot);
-                        lastRetract = Time.time;
+                        if(tongueSegs.Count > 1){
+                            GameObject next = tongueSegs[tongueSegs.Count-2];
+                            Vector2 spot = transform.position;
+                            // for(int i = tongueSegs.Count-2; i > tongueSegs.Count-4 && i > 0; i--)
+                            //     tongueSegs[i].GetComponent<SliderJoint2D>().enabled = true;
+                            //find alternative method that actually exerts force from the head upon the tongue
+                            // simply calculate proper force vector and then use addForce on the tongue and add the inverse to the head
+                            next.GetComponent<Rigidbody2D>().MovePosition(spot);
+                            lastRetract = Time.time;
+                        }
+                        else last.transform.position = transform.position;
                     }
-                    Debug.Log("should pull");
-                    //separate deconstruct section fixes decon happening prematurely but halts tongue after the shoot button is pressed again?
-                    if(lPos.x < width*-inScale && lPos.x > width*-outScale)
-                        if(lPos.y < width*outScale && lPos.y > width*-outScale) decon(last);
-                }
-                else if(tongueSegs.Count==1){
-                    GameObject last = tongueSegs[tongueSegs.Count-1];
-                    Vector2 lPos = last.transform.localPosition;
-                    if(Time.time - lastRetract >= retractGap){
-                        last.transform.position = transform.position;
-                        lastRetract = Time.time;
-                    }
-                    if(lPos.x < width*-inScale && lPos.x > width*-outScale)
-                        if(lPos.y < width*outScale && lPos.y > width*-outScale){ decon(last); slurp();}
+                    //separate deconstruct section fixes decon happening without actually being "in mouth"
+                    if(lPos.x < width*inScale)
+                        if(lPos.y < width && lPos.y > -width){ decon(last); if(tongueSegs.Count==1) slurp();}
                 }
                 physd = false;
             }
@@ -124,7 +136,6 @@ public class SpawnTongu : MonoBehaviour
     }
 
     void slurp(){
-        Transform tip = transform.Find("Tongue_Tip");
         tip.position = transform.position;
         tip.GetComponent<SliderJoint2D>().enabled = true;
         tip.GetComponent<FixedJoint2D>().enabled = true;

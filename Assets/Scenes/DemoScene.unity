@@ -435,7 +435,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 227418241}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.55, y: -1.8, z: 0}
+  m_LocalPosition: {x: 3, y: -1.82, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -2296,7 +2296,6 @@ GameObject:
   m_Component:
   - component: {fileID: 817404037}
   - component: {fileID: 817404039}
-  - component: {fileID: 817404040}
   - component: {fileID: 817404041}
   - component: {fileID: 817404038}
   m_Layer: 8
@@ -2368,20 +2367,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 2
---- !u!114 &817404040
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 817404036}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7dedfd3b2d1c8b94ab4a670c673f8d31, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  speed: 20
-  tol: 0.5
 --- !u!255 &817404041
 FixedJoint2D:
   m_ObjectHideFlags: 0
@@ -3520,6 +3505,8 @@ MonoBehaviour:
   prefab: {fileID: 208563332879416121, guid: bc7aefd812882d24caefab073af6dc5f, type: 3}
   outScale: 0.9
   inScale: 0.25
+  speed: 10
+  tol: 0
   retractGap: 0.02
 --- !u!1 &1664776004
 GameObject:
