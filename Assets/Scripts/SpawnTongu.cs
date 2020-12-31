@@ -10,8 +10,8 @@ public class SpawnTongu : MonoBehaviour
     public float outScale;
     public float inScale;
     public float speed;
-    public float tol;
     public int max;
+    public float tongueForce;
     //th is true when the tongue button is being held
     private bool th = false;
     private bool physd;
@@ -23,12 +23,15 @@ public class SpawnTongu : MonoBehaviour
     private Transform tip;
     private bool reset = true;
     private List<GameObject> tongueSegs = new List<GameObject>();
+    public List<Sticky> stickies;
+
 
     // Start is called before the first frame update
     void Start(){
         width = prefab.GetComponent<SpriteRenderer>().bounds.size.x;
         startPos = transform.localPosition;
         tip = transform.Find("Tongue_Tip");
+        transform.parent.GetComponent<StickFree>().stickies = stickies;
     }
 
     void OnTongue(InputValue value){
@@ -42,17 +45,25 @@ public class SpawnTongu : MonoBehaviour
             }
             //suppress the stickiness of the tip for a second
             else{
-                FixedJoint2D[] fjs = tip.GetComponents<FixedJoint2D>();
-                for(int i = 1;i<fjs.Length;i++)
-                    Destroy(fjs[i]);
-                tip.GetComponentInChildren<Sticky>().stickOn = false;
+                foreach(Sticky s in stickies){
+                    Debug.Log(s);
+                    foreach(Joint2D fj in s.stucks){
+                        s.stucks.Remove(fj);
+                        Destroy(fj);
+                    }
+                    s.stickOn = false;
+                }
                 StartCoroutine(unStick());
             }
         }
     }
 
-    //turns the tips stickiness back on after a second
-    IEnumerator unStick(){yield return new WaitForSeconds(1); GetComponentInChildren<Sticky>().stickOn = true;}
+    //turns the stickiness back on after a second
+    IEnumerator unStick(){
+        yield return new WaitForSeconds(1);
+        foreach(Sticky s in stickies)
+            s.stickOn = true;
+    }
 
     // Update is called once per frame
     void Update(){
@@ -99,11 +110,19 @@ public class SpawnTongu : MonoBehaviour
                         //move the second to last segment into the mouth. should actually pull
                         if(tongueSegs.Count > 1){
                             GameObject next = tongueSegs[tongueSegs.Count-2];
-                            //find alternative method that actually exerts force from the head upon the tongue
-                            //simply calculate proper force vector and then use addForce on the tongue and add the inverse to the head
-                            //orrrr compare masses and move lighter only?? orrrr move both proportionaly??
-                            next.GetComponent<Rigidbody2D>().MovePosition(transform.position);
-                            // next.GetComponent<SliderJoint2D>().enabled = true;
+                            //vector math to approximate appropriate force on tongue by head
+                            Vector2 force = transform.position - next.transform.position;
+                            float mod = tongueForce/force.magnitude;
+                            Vector2 nv = next.GetComponent<Rigidbody2D>().velocity;
+                            Vector2 mush = nv/force;
+                            float mm = mush.x+mush.y;
+                            if(mm < 0) {
+                                // next.GetComponent<Rigidbody2D>().MovePosition((Vector2)transform.position-(nv*(float).03));
+                                for(int i = tongueSegs.Count-1; i >= 0 && i > tongueSegs.Count-5; i--)
+                                    tongueSegs[i].GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+                            }
+                            next.GetComponent<Rigidbody2D>().AddForce(force*mod);
+                            transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod);
                         }
                         else last.transform.position = transform.position;//why is this necessary??? if not present the first segment just dangles around when it should be gone
                         lastRetract = Time.time;

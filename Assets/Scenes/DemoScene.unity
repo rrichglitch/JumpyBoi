@@ -1039,7 +1039,7 @@ CircleCollider2D:
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
@@ -2296,9 +2296,9 @@ GameObject:
   m_Component:
   - component: {fileID: 817404037}
   - component: {fileID: 817404039}
+  - component: {fileID: 817404042}
   - component: {fileID: 817404041}
   - component: {fileID: 817404038}
-  - component: {fileID: 817404042}
   - component: {fileID: 817404040}
   - component: {fileID: 817404043}
   m_Layer: 8
@@ -2337,7 +2337,7 @@ SliderJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: 0, y: 0}
-  m_ConnectedAnchor: {x: 0.023000143, y: -0.004999958}
+  m_ConnectedAnchor: {x: 0.09400021, y: -0.0020001095}
   m_AutoConfigureAngle: 0
   m_Angle: 0
   m_UseMotor: 0
@@ -2415,7 +2415,7 @@ FixedJoint2D:
   m_BreakTorque: 10000
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: 0, y: 0}
-  m_ConnectedAnchor: {x: 0.023000143, y: -0.004999958}
+  m_ConnectedAnchor: {x: 0.09400021, y: -0.0020001095}
   m_DampingRatio: 0
   m_Frequency: 0
 --- !u!212 &817404042
@@ -2457,7 +2457,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: 26e1b930a96205b4093d7a277dfdae59, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -2481,7 +2481,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 058520c1e7e0dee41bf0ad99fc661d07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  breakForce: 1000
+  breakForce: 600
   stickOn: 1
 --- !u!1 &852237805
 GameObject:
@@ -3452,14 +3452,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1631431210}
-  m_LocalRotation: {x: -0, y: -0, z: -0.1998073, w: 0.9798352}
-  m_LocalPosition: {x: 0.023, y: -0.005, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: 0.075087346, w: 0.997177}
+  m_LocalPosition: {x: 0.094, y: -0.002, z: 1}
   m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_Children:
   - {fileID: 817404037}
   m_Father: {fileID: 1696364278}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -23.051}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 8.612}
 --- !u!114 &1631431212
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3476,8 +3476,8 @@ MonoBehaviour:
   outScale: 0.85
   inScale: 0.25
   speed: 20
-  tol: 0
   max: 100
+  tongueForce: 500
   retractGap: 0.02
 --- !u!212 &1631431213
 SpriteRenderer:
@@ -3870,6 +3870,7 @@ GameObject:
   - component: {fileID: 1696364281}
   - component: {fileID: 1696364280}
   - component: {fileID: 1696364282}
+  - component: {fileID: 1696364284}
   - component: {fileID: 1696364283}
   m_Layer: 8
   m_Name: Head
@@ -3885,14 +3886,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1696364277}
-  m_LocalRotation: {x: -0, y: -0, z: 0.44395363, w: 0.8960498}
-  m_LocalPosition: {x: 0.55, y: 0.25, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0.034995813, w: 0.9993875}
+  m_LocalPosition: {x: 0.56, y: 0.296, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1631431211}
   m_Father: {fileID: 1667904163}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 52.713}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -4.011}
 --- !u!212 &1696364279
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -3900,7 +3901,7 @@ SpriteRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1696364277}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -4034,25 +4035,38 @@ FixedJoint2D:
   m_Enabled: 1
   serializedVersion: 4
   m_EnableCollision: 0
-  m_ConnectedRigidBody: {fileID: 0}
+  m_ConnectedRigidBody: {fileID: 1667904165}
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: -0.19, y: -0.13}
-  m_ConnectedAnchor: {x: -3.9590266, y: -1.9098749}
+  m_ConnectedAnchor: {x: 0.36137173, y: 0.17960817}
   m_DampingRatio: 0
   m_Frequency: 0
---- !u!60 &1696364283
+--- !u!114 &1696364283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1696364277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 082ad710c1db6104da7a6e8e8f4bd402, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  free: []
+--- !u!60 &1696364284
 PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1696364277}
-  m_Enabled: 0
+  m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
@@ -4067,18 +4081,18 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 0.28, y: 0.13499999}
-      - {x: 0.06, y: 0.155}
-      - {x: -0.099999994, y: 0.255}
-      - {x: -0.24, y: 0.255}
-      - {x: -0.35, y: 0.195}
-      - {x: -0.35, y: -0.085}
-      - {x: -0.32999998, y: -0.185}
-      - {x: -0.19, y: -0.255}
-      - {x: 0.03, y: -0.255}
-      - {x: 0.24, y: -0.145}
-      - {x: 0.35, y: -0.085}
-      - {x: 0.35, y: 0.055}
+    - - {x: 0.32, y: 0.12}
+      - {x: 0.24, y: 0.16}
+      - {x: -0.049999997, y: 0.25}
+      - {x: -0.22999999, y: 0.25}
+      - {x: -0.38, y: 0.11}
+      - {x: -0.38, y: -0.06}
+      - {x: -0.32, y: -0.19999999}
+      - {x: -0.22, y: -0.22999999}
+      - {x: 0.049999997, y: -0.22999999}
+      - {x: 0.28, y: -0.12}
+      - {x: 0.32999998, y: -0.07}
+      - {x: 0.32999998, y: 0.04}
 --- !u!1 &1729183059
 GameObject:
   m_ObjectHideFlags: 0
