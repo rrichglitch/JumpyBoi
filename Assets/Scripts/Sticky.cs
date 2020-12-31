@@ -15,14 +15,10 @@ public class Sticky : MonoBehaviour
     //     FJ2D.connectedBody = test;
     //     FJ2D.enabled = true;
     // }
-    void Start(){stickOn = true;}
     void OnTriggerEnter2D(Collider2D oColid){
         if(stickOn){
             FixedJoint2D nj;
-            if(name =="Tip_Pic")
-                nj = transform.parent.gameObject.AddComponent<FixedJoint2D>() as FixedJoint2D;
-            else
-                nj = gameObject.AddComponent<FixedJoint2D>() as FixedJoint2D;
+            nj = gameObject.AddComponent<FixedJoint2D>() as FixedJoint2D;
             nj.connectedBody = oColid.attachedRigidbody;
             nj.breakForce = breakForce;
             nj.breakTorque = breakForce;
