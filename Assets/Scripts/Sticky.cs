@@ -8,9 +8,8 @@ public class Sticky : MonoBehaviour
     public bool stickOn = true;
     public List<Joint2D> stucks = new List<Joint2D>();
     private List<Rigidbody2D> free;
-    void Awake(){
+    void Start(){
         free = transform.parent.parent.GetComponent<StickFree>().free;
-        transform.parent.GetComponent<SpawnTongu>().stickies.Add(this);
     }
     void OnTriggerEnter2D(Collider2D oColid){
         if(stickOn){

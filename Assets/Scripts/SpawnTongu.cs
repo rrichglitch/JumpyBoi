@@ -22,8 +22,7 @@ public class SpawnTongu : MonoBehaviour
     private float lastRetract = 0;
     private Transform tip;
     private bool reset = true;
-    private List<GameObject> tongueSegs = new List<GameObject>();
-    public List<Sticky> stickies;
+    public List<GameObject> tongueSegs = new List<GameObject>();
 
 
     // Start is called before the first frame update
@@ -31,7 +30,6 @@ public class SpawnTongu : MonoBehaviour
         width = prefab.GetComponent<SpriteRenderer>().bounds.size.x;
         startPos = transform.localPosition;
         tip = transform.Find("Tongue_Tip");
-        transform.parent.GetComponent<StickFree>().stickies = stickies;
     }
 
     void OnTongue(InputValue value){
@@ -45,63 +43,69 @@ public class SpawnTongu : MonoBehaviour
             }
             //suppress the stickiness of the tip for a second
             else{
-                foreach(Sticky s in stickies){
-                    Debug.Log(s);
-                    foreach(Joint2D fj in s.stucks){
-                        s.stucks.Remove(fj);
-                        Destroy(fj);
+                Debug.Log(tongueSegs.Count);
+                foreach(GameObject ts in tongueSegs){
+                    Debug.Log(ts.GetComponent<Sticky>());
+                    for (int i = ts.GetComponent<Sticky>().stucks.Count - 1; i >= 0; i--){
+                        Destroy(ts.GetComponent<Sticky>().stucks[i]);
+                        ts.GetComponent<Sticky>().stucks.Remove(ts.GetComponent<Sticky>().stucks[i]);
                     }
-                    s.stickOn = false;
+                    ts.GetComponent<Sticky>().stickOn = false;
                 }
-                StartCoroutine(unStick());
+                for (int i = tip.GetComponent<Sticky>().stucks.Count - 1; i >= 0; i--){
+                        Destroy(tip.GetComponent<Sticky>().stucks[i]);
+                        tip.GetComponent<Sticky>().stucks.Remove(tip.GetComponent<Sticky>().stucks[i]);
+                    }
+                    tip.GetComponent<Sticky>().stickOn = false;
+                // StartCoroutine(reStick());
             }
         }
     }
 
     //turns the stickiness back on after a second
-    IEnumerator unStick(){
-        yield return new WaitForSeconds(1);
-        foreach(Sticky s in stickies)
-            s.stickOn = true;
+    IEnumerator reStick(){
+        yield return new WaitForSeconds(3);
+        foreach(GameObject ts in tongueSegs)
+            ts.GetComponent<Sticky>().stickOn = true;
+        tip.GetComponent<Sticky>().stickOn = true;
     }
 
     // Update is called once per frame
     void Update(){
         if(tongueSegs.Count == 0) reset = true;
-        if(th){
-            if(reset){
-                GameObject next;
-                //loop to build segments back from the part of the tongue out of the mouth
-                next = getNext();
-                Vector2 lPos = next.transform.localPosition;
-                for(int lc = 0;lPos.x > width*outScale && tongueSegs.Count < max && lc <max;lc++){
-                    Vector3 spawnSpot = lPos;
-                    //the tip needs to be slid back a bit due to the sprite size
-                    if(next.name == "Tongue_Tip") spawnSpot.x -= width*outScale*(float).8;
-                    else spawnSpot.x -= width*outScale;
-                    GameObject last = Instantiate(prefab, transform);
-                    last.transform.localPosition = spawnSpot;
-                    tongueSegs.Add(last);
-                    setConstraints(last, next);
-                    if(tongueSegs.Count >= max)
-                        last.GetComponent<FixedJoint2D>().enabled = true;
-
-                    //prepare conditions for next loop
-                    next = getNext();
-                    lPos = next.transform.localPosition;
-                }
-            }
-            //hold from swallowing tongue or falling off
-            if(tongueSegs.Count > 0){
-                GameObject last = tongueSegs[tongueSegs.Count-1];
-                Vector2 lPos = last.transform.localPosition;
-                if(lPos.x < -inScale*width || lPos.y < -inScale*width || lPos.y > inScale*width)
+        if(reset){
+            tip.GetComponent<Sticky>().stickOn = true;
+            GameObject next;
+            //loop to build segments back from the part of the tongue out of the mouth
+            next = getNext();
+            Vector2 lPos = next.transform.localPosition;
+            for(int lc = 0;lPos.x > width*outScale && tongueSegs.Count < max && lc <max;lc++){
+                Vector3 spawnSpot = lPos;
+                //the tip needs to be slid back a bit due to the sprite size
+                if(next.name == "Tongue_Tip") spawnSpot.x -= width*outScale*(float).8;
+                else spawnSpot.x -= width*outScale;
+                GameObject last = Instantiate(prefab, transform);
+                last.transform.localPosition = spawnSpot;
+                tongueSegs.Add(last);
+                setConstraints(last, next);
+                if(tongueSegs.Count >= max)
                     last.GetComponent<FixedJoint2D>().enabled = true;
+
+                //prepare conditions for next loop
+                next = getNext();
+                lPos = next.transform.localPosition;
             }
         }
+        //hold from swallowing tongue or falling off
+        // if(tongueSegs.Count > 0){
+        //     GameObject last = tongueSegs[tongueSegs.Count-1];
+        //     Vector2 lPos = last.transform.localPosition;
+        //     if(lPos.x < -inScale*width || lPos.y < -inScale*width || lPos.y > inScale*width)
+        //         last.GetComponent<FixedJoint2D>().enabled = true;
+        // }
 
         //retract tongue
-        else{
+        if(!th){
             if(physd){
                 if(tongueSegs.Count > 0){
                     GameObject last = tongueSegs[tongueSegs.Count-1];
@@ -124,7 +128,7 @@ public class SpawnTongu : MonoBehaviour
                             next.GetComponent<Rigidbody2D>().AddForce(force*mod);
                             transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod);
                         }
-                        else last.transform.position = transform.position;//why is this necessary??? if not present the first segment just dangles around when it should be gone
+                        // else last.transform.position = transform.position;//why is this necessary??? if not present the first segment just dangles around when it should be gone
                         lastRetract = Time.time;
                     }
                     Vector2 lPos = last.transform.localPosition;
@@ -136,6 +140,13 @@ public class SpawnTongu : MonoBehaviour
                         }
                 }
                 else slurp();
+            }
+            //hold from swallowing tongue or falling off
+            if(tongueSegs.Count > 0){
+                GameObject last = tongueSegs[tongueSegs.Count-1];
+                Vector2 lPos = last.transform.localPosition;
+                if(lPos.x > inScale*width || lPos.y < -inScale*width || lPos.y > inScale*width)
+                    last.GetComponent<FixedJoint2D>().enabled = true;
             }
         }
         physd = false;
@@ -158,13 +169,17 @@ public class SpawnTongu : MonoBehaviour
     //pull the tip back into position in mouth
     void slurp(){
         tip.position = transform.position;
+        for (int i = tip.GetComponent<Sticky>().stucks.Count - 1; i >= 0; i--){
+            Destroy(tip.GetComponent<Sticky>().stucks[i]);
+            tip.GetComponent<Sticky>().stucks.Remove(tip.GetComponent<Sticky>().stucks[i]);
+        }
         tip.GetComponent<SliderJoint2D>().enabled = true;
         tip.GetComponent<FixedJoint2D>().enabled = true;
         reset = true;
     }
     void decon(GameObject del){
-        Destroy(del);
         tongueSegs.Remove(del);
+        Destroy(del);
     }
     void FixedUpdate(){physd=true;}
 }
