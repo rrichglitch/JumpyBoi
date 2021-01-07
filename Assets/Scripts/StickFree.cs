@@ -6,19 +6,14 @@ public class StickFree : MonoBehaviour
 {
     public List<Rigidbody2D> free = new List<Rigidbody2D>();
     private List<Joint2D> tipStucks;
-    void Start(){ tipStucks = transform.GetChild(0).Find("Tongue_Tip").GetComponent<Sticky>().stucks; }
+    void Start(){}
     void OnTriggerEnter2D(Collider2D oColid){
         free.Add(oColid.attachedRigidbody);
-        foreach(GameObject ts in transform.GetComponentInChildren<SpawnTongu>().tongueSegs)
-            for (int i = ts.GetComponent<Sticky>().stucks.Count - 1; i >= 0; i--)
-                if(free.Contains(ts.GetComponent<Sticky>().stucks[i].connectedBody)){
-                    Destroy(ts.GetComponent<Sticky>().stucks[i]);
-                    ts.GetComponent<Sticky>().stucks.Remove(ts.GetComponent<Sticky>().stucks[i]);
-                }
-        for (int i = tipStucks.Count - 1; i >= 0; i--)
-                if(free.Contains(tipStucks[i].connectedBody)){
-                    Destroy(tipStucks[i]);
-                    tipStucks.Remove(tipStucks[i]);
+        foreach(Sticky s in transform.GetChild(0).GetComponentsInChildren<Sticky>())
+            for (int i = s.stucks.Count - 1; i >= 0; i--)
+                if(free.Contains(s.stucks[i].connectedBody)){
+                    Destroy(s.stucks[i]);
+                    s.stucks.Remove(s.stucks[i]);
                 }
     }
     void OnTriggerExit2D(Collider2D oColid) {
