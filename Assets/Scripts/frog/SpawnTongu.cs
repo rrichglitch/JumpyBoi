@@ -76,22 +76,23 @@ public class SpawnTongu : MonoBehaviour
 
         //loop to build segments back from the part of the tongue out of the mouth
         next = getNext();
-        lPos = next.transform.localPosition;
-        for(int lc = 0;lPos.x > width*outScale && tongueSegs.Count < max && lc <max;lc++){
-            Vector3 spawnSpot = lPos;
+        Vector2 spawnSpot = next.transform.localPosition;
+        for(int lc = 0; spawnSpot.x > width*outScale && tongueSegs.Count < max && lc <max; lc++){
             //the tip needs to be slid back a bit due to the sprite size
-            if(next.name == "Tongue_Tip") spawnSpot.x -= width*outScale*.8F;
-            else spawnSpot.x -= width*outScale;
+            float mod = width*outScale/spawnSpot.magnitude;
+            if(next.name == "Tongue_Tip") spawnSpot = spawnSpot-(spawnSpot * mod*.8F);
+            else spawnSpot = spawnSpot-(spawnSpot * mod);
             last = Instantiate(prefab, transform);
             last.transform.localPosition = spawnSpot;
             tongueSegs.Add(last);
+            lPos = last.transform.localPosition;
             setConstraints(last, next);
             //this sets the distance joint that keeps the shape of the overall tongue relative to the head
             headDists[0].distance = (width*(1+outScale))+(tongueSegs.Count*width*outScale*tlMod);
 
             //prepare conditions for next loop
             next = getNext();
-            lPos = next.transform.localPosition;
+            spawnSpot = next.transform.localPosition;
         }
 
 
@@ -171,22 +172,22 @@ public class SpawnTongu : MonoBehaviour
         last.GetComponent<SliderJoint2D>().connectedBody = transform.parent.GetComponent<Rigidbody2D>();
         last.GetComponent<HingeJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
         last.GetComponent<DistanceJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
-        if(next.name == "Tongue_Tip") last.GetComponent<DistanceJoint2D>().autoConfigureConnectedAnchor = true;
         next.GetComponent<SliderJoint2D>().enabled = false;
-        if(tongueSegs.Count < 10)
-            last.GetComponent<Sticky>().breakForce += tip.GetComponent<Sticky>().breakForce/(tongueSegs.Count+1);
+        if(next.name == "Tongue_Tip") last.GetComponent<DistanceJoint2D>().autoConfigureConnectedAnchor = true;
+        if(tongueSegs.Count < 10) last.GetComponent<Sticky>().breakForce += tip.GetComponent<Sticky>().breakForce/(tongueSegs.Count+1);
     }
 
     //pull the tip back into position in mouth
     void slurp(){
         tip.position = transform.position;
+        tip.rotation = transform.rotation;
         for (int i = tip.GetComponent<Sticky>().stucks.Count - 1; i >= 0; i--){
             Destroy(tip.GetComponent<Sticky>().stucks[i]);
             tip.GetComponent<Sticky>().stucks.Remove(tip.GetComponent<Sticky>().stucks[i]);
         }
+        tip.GetComponent<Rigidbody2D>().velocity = transform.InverseTransformDirection(Vector2.zero);
         tip.GetComponent<SliderJoint2D>().enabled = true;
         tip.GetComponent<FixedJoint2D>().enabled = true;
-        tip.GetComponent<Rigidbody2D>().velocity = tip.InverseTransformDirection(Vector2.zero);
         tip.GetComponent<Sticky>().defStick();
         headDists[0].distance = width*(1+outScale);
         headDists[1].distance = width*1.5F;
