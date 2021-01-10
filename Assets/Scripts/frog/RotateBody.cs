@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class RotateBody : MonoBehaviour
 {
@@ -12,7 +13,8 @@ public class RotateBody : MonoBehaviour
     private HingeJoint2D arm;
     private JointAngleLimits2D lims;
     private float initMax;
-    void OnRotateBod(){rotating = !rotating;}
+    private float initTorq;
+    void OnRotateBod(InputValue val){rotating = val.isPressed;}
     void Start()
     {
         hj2D = GetComponent<HingeJoint2D>();
@@ -21,13 +23,18 @@ public class RotateBody : MonoBehaviour
         startRot = hj2D.jointAngle;
         lims = arm.limits;
         initMax = lims.max;
+        initTorq = motor.maxMotorTorque;
     }
     void Update()
     {
         if(rotating){
             motor.motorSpeed = speed;
-        }else{
+            motor.maxMotorTorque = initTorq;
+        }
+        else{
             motor.motorSpeed = speed*(float)-.5;
+            if(transform.GetComponent<Rigidbody2D>().velocity.magnitude > 5) motor.maxMotorTorque = Commons.Instance.weak;
+            else motor.maxMotorTorque = initTorq;
         }
         hj2D.motor = motor;
         lims.max = initMax - (float)((startRot-hj2D.jointAngle)*.6);

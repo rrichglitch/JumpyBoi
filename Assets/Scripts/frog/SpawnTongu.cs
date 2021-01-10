@@ -47,16 +47,16 @@ public class SpawnTongu : MonoBehaviour
                 tip.GetComponent<Rigidbody2D>().velocity = tip.TransformDirection(new Vector2(vel.x+speed,vel.y));
             }
             //suppress the stickiness of the tip for a second
-            // else{
-            //     foreach(Sticky s in GetComponentsInChildren<Sticky>()){
-            //         for (int i = s.stucks.Count - 1; i >= 0; i--){
-            //             Destroy(s.stucks[i]);
-            //             s.stucks.Remove(s.stucks[i]);
-            //         }
-            //         s.defStick(false);
-            //     }
-            //     // StartCoroutine(reStick());
-            // }
+            else{
+                foreach(Sticky s in GetComponentsInChildren<Sticky>()){
+                    for (int i = s.stucks.Count - 1; i >= 0; i--){
+                        Destroy(s.stucks[i]);
+                        s.stucks.Remove(s.stucks[i]);
+                    }
+                    s.defStick(false);
+                }
+                // StartCoroutine(reStick());
+            }
         }
     }
 
