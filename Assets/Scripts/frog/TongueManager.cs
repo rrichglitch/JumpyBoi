@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class ManageTongue : MonoBehaviour
+public class TongueManager : MonoBehaviour
 {
     //prefab of the tongue segments
     public GameObject prefab;
     public float outScale;
     public float inScale;
     public float speed;
-    public int max;
-    public float tongueForce;
+    public int maxSegs;
+    public float pullForce;
     //th is true when the tongue button is being held
     private bool th = false;
     private bool physd;
     private float width;
     private Vector2 startPos;
     //retractGap is the amount of time between pulling segments of tongue back into the mouth, while the tongue button is not being held
-    public float tlMod;
+    public float lengthMod;
     private float lastRetract = 0;
     private Transform tip;
     private DistanceJoint2D[] headDists;
@@ -34,7 +34,7 @@ public class ManageTongue : MonoBehaviour
     void Start(){
         width = prefab.GetComponent<SpriteRenderer>().bounds.size.x;
         startPos = transform.localPosition;
-        tip = transform.Find("Tongue_Tip");
+        tip = transform.GetChild(0);
         headDists = transform.parent.GetComponents<DistanceJoint2D>();
     }
 
@@ -76,7 +76,7 @@ public class ManageTongue : MonoBehaviour
         if(tongueSegs.Count > 0){
             last = tongueSegs[tongueSegs.Count-1];
             //tighten leash(distance joint) from head to last seg
-            if(!th || tongueSegs.Count > max-3 || transform.InverseTransformDirection(last.GetComponent<Rigidbody2D>().velocity).x < -.1) headDists[1].distance = .12F;
+            if(!th || tongueSegs.Count > maxSegs-3 || transform.InverseTransformDirection(last.GetComponent<Rigidbody2D>().velocity).x < -.1) headDists[1].distance = .12F;
             
             if(!th){
                 peaked = true;
@@ -143,7 +143,7 @@ public class ManageTongue : MonoBehaviour
         //loop to build segments back from the part of the tongue out of the mouth
         next = getNext();
         Vector2 spawnSpot = next.transform.localPosition;
-        for(int lc = 0; spawnSpot.x > width*outScale && tongueSegs.Count < max && lc <max; lc++){
+        for(int lc = 0; spawnSpot.x > width*outScale && tongueSegs.Count < maxSegs && lc <maxSegs; lc++){
             //the tip needs to be slid back a bit due to the sprite size
             float mod = width*outScale/spawnSpot.magnitude;
             if(next.name == "Tongue_Tip") spawnSpot = spawnSpot-(spawnSpot * mod*.8F);
@@ -154,7 +154,7 @@ public class ManageTongue : MonoBehaviour
             lPos = last.transform.localPosition;
             setConstraints(last, next);
             //this sets the distance joint that keeps the shape of the overall tongue relative to the head
-            headDists[0].distance = (width*(1+outScale))+(tongueSegs.Count*width*outScale*tlMod);
+            headDists[0].distance = (width*(1+outScale))+(tongueSegs.Count*width*outScale*lengthMod);
 
             //prepare conditions for next loop
             next = getNext();
@@ -164,18 +164,23 @@ public class ManageTongue : MonoBehaviour
 
     private void pull(){
         last = tongueSegs[tongueSegs.Count-1];
+        next = tongueSegs[tongueSegs.Count-2];
         //vector math to approximate appropriate force on tongue by head
         Vector2 force = transform.position - last.transform.position;
-        float mod = tongueForce/force.magnitude;
-        Vector2 nv = last.GetComponent<Rigidbody2D>().velocity;
-        Vector2 mush = nv/force;
+        float mod = pullForce/force.magnitude;
+        Vector2 lv = last.GetComponent<Rigidbody2D>().velocity;
+        Vector2 mush = lv/force;
         float mm = mush.x+mush.y;
         // if(mm < 0) {
         //     // next.GetComponent<Rigidbody2D>().MovePosition((Vector2)transform.position-(nv*(float).03));
         //     for(int i = tongueSegs.Count-1; i >= 0; i--)
         //         tongueSegs[i].GetComponent<Rigidbody2D>().AddForce((force*mod)*((i+1)/tongueSegs.Count));
         // }
-        // next.GetComponent<Rigidbody2D>().MovePosition(transform.position);
+
+        //a few lines to try and damper unwanted movement
+        last.GetComponent<Rigidbody2D>().velocity = new Vector2(lv.x*.6F,0);
+        next.GetComponent<Rigidbody2D>().velocity = new Vector2(next.GetComponent<Rigidbody2D>().velocity.x*.8F,next.GetComponent<Rigidbody2D>().velocity.y/4);
+
         last.GetComponent<Rigidbody2D>().AddForce(force*mod);
         someStuck = false;
         foreach(Sticky s in GetComponentsInChildren<Sticky>())
@@ -195,7 +200,7 @@ public class ManageTongue : MonoBehaviour
             if(lPos.y < width && lPos.y > -width){
                 decon(last);
                 // getNext().GetComponent<SliderJoint2D>().enabled = true;
-                headDists[0].distance = (width*(1+outScale))+(tongueSegs.Count*width*outScale*tlMod);
+                headDists[0].distance = (width*(1+outScale))+(tongueSegs.Count*width*outScale*lengthMod);
                 headDists[1].connectedBody = getNext().GetComponent<Rigidbody2D>();
             }
     }
