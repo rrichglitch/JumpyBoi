@@ -177,9 +177,12 @@ public class TongueManager : MonoBehaviour
         //         tongueSegs[i].GetComponent<Rigidbody2D>().AddForce((force*mod)*((i+1)/tongueSegs.Count));
         // }
 
-        //a few lines to try and damper unwanted movement
-        last.GetComponent<Rigidbody2D>().velocity = new Vector2(lv.x*.6F,0);
-        next.GetComponent<Rigidbody2D>().velocity = new Vector2(next.GetComponent<Rigidbody2D>().velocity.x*.8F,next.GetComponent<Rigidbody2D>().velocity.y/4);
+        //a few lines to try and damper orbital movement
+        // Debug.Log(last.transform.InverseTransformDirection(lv));
+        last.GetComponent<Rigidbody2D>().velocity = last.transform.TransformDirection(new Vector2(last.transform.InverseTransformDirection(lv).x*.6F,0));
+        Vector2 nlv = next.transform.InverseTransformDirection(next.GetComponent<Rigidbody2D>().velocity);
+        next.GetComponent<Rigidbody2D>().velocity = next.transform.TransformDirection(new Vector2(nlv.x*.8F,nlv.y/4));
+        // Debug.Log(last.transform.InverseTransformDirection(last.GetComponent<Rigidbody2D>().velocity));
 
         last.GetComponent<Rigidbody2D>().AddForce(force*mod);
         someStuck = false;

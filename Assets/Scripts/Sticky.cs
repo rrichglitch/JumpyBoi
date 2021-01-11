@@ -9,7 +9,7 @@ public class Sticky : MonoBehaviour
     private bool stickOn;
     public List<Joint2D> stucks = new List<Joint2D>();
     public List<Rigidbody2D> free;
-    [SerializeField] private const bool defVal = true;
+    [SerializeField] private bool defVal = true;
     void Start(){
         // if(free == null && tongue) free = transform.parent.parent.GetComponent<StickFree>().free;
         stickOn = defVal;
@@ -31,5 +31,5 @@ public class Sticky : MonoBehaviour
         if(ind != -1)
             stucks.RemoveAt(ind);
     }
-    public bool defStick(bool set = defVal){stickOn = set; return set;}
+    public bool defStick(bool set = true){if(set) stickOn = defVal; else stickOn = set; return stickOn;}
 }

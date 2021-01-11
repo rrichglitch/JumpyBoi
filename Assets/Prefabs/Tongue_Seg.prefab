@@ -236,3 +236,4 @@ MonoBehaviour:
   breakForce: 0
   stucks: []
   free: []
+  defVal: 1
