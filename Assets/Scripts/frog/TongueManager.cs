@@ -19,7 +19,6 @@ public class TongueManager : MonoBehaviour
     private Vector2 startPos;
     //retractGap is the amount of time between pulling segments of tongue back into the mouth, while the tongue button is not being held
     public float lengthMod;
-    private float lastRetract = 0;
     private Transform tip;
     private DistanceJoint2D[] headDists;
     private bool peaked = false;
@@ -35,19 +34,35 @@ public class TongueManager : MonoBehaviour
         width = prefab.GetComponent<SpriteRenderer>().bounds.size.x;
         startPos = transform.localPosition;
         tip = transform.GetChild(0);
+        tip.GetComponent<Sticky>().defStick(false);
         headDists = transform.parent.GetComponents<DistanceJoint2D>();
     }
 
     //handles shooting the tongue and then deactivating the stickiness
-    void OnTongue(InputValue value){
-        th=value.isPressed;
-        if(value.isPressed){
+    public void OnTongue(object value){
+        if(value is InputValue)
+            th=((InputValue)value).isPressed;
+        else th = (bool)value;
+        if(th){
             //shoot the tip of the tongue
             if(tip.GetComponent<FixedJoint2D>().enabled){
                 tip.GetComponent<FixedJoint2D>().enabled = false;
-                // tip.GetComponent<Rigidbody2D>().AddRelativeForce(new Vector2(speed,0), ForceMode2D.Impulse);
+
+                // the actual change in position from velocity is velocity/50 every physics step
                 Vector2 vel = tip.InverseTransformDirection(tip.GetComponent<Rigidbody2D>().velocity);
-                tip.GetComponent<Rigidbody2D>().velocity = tip.TransformDirection(new Vector2(vel.x+speed,vel.y));
+
+                // check if there is something infront of the mouth that the tongue will get stuck in and adjust the velocity accordingly
+                Vector2 rayStart = tip.localPosition;
+                rayStart.x += .56F;
+                rayStart = tip.TransformPoint(rayStart);
+                RaycastHit2D rCH2D= Physics2D.Raycast(rayStart, tip.TransformDirection(Vector2.right), speed*.01F);
+                if(rCH2D) vel.x += speed * rCH2D.fraction;
+                else vel.x += speed;
+
+                // tip.GetComponent<Rigidbody2D>().AddRelativeForce(new Vector2(speed*.45F,0), ForceMode2D.Impulse);
+                tip.GetComponent<Rigidbody2D>().velocity = tip.TransformDirection(vel);
+                transform.parent.GetComponent<Rigidbody2D>().AddForce(tip.TransformDirection(new Vector2(speed*-.1F,0)), ForceMode2D.Impulse);
+                tip.GetComponent<Sticky>().defStick();
             }
             //suppress the stickiness of the tip for a second
             else{
@@ -72,6 +87,10 @@ public class TongueManager : MonoBehaviour
 
     // Update is called once per frame
     void Update(){
+        Vector2 rayStart = tip.localPosition;
+        rayStart.x += .56F;
+        rayStart = tip.TransformPoint(rayStart);
+        Debug.DrawRay(rayStart, tip.TransformDirection(Vector2.right), Color.green);
         //stuff to run when the tongue is out
         if(tongueSegs.Count > 0){
             last = tongueSegs[tongueSegs.Count-1];
@@ -82,10 +101,9 @@ public class TongueManager : MonoBehaviour
                 peaked = true;
                 lPos = last.transform.localPosition;
                 eatLast();
-                last = tongueSegs[tongueSegs.Count-1];
                 //covers the case when there is only one segment and its not moving in
-                if(tongueSegs.Count < 2){
-                    decon(last);
+                if(tongueSegs.Count == 1){
+                    decon(tongueSegs[tongueSegs.Count-1]);
                     headDists[1].connectedBody = getNext().GetComponent<Rigidbody2D>();
                     slurp();
                 }                        
@@ -130,12 +148,12 @@ public class TongueManager : MonoBehaviour
             Destroy(tip.GetComponent<Sticky>().stucks[i]);
             tip.GetComponent<Sticky>().stucks.Remove(tip.GetComponent<Sticky>().stucks[i]);
         }
-        tip.GetComponent<Rigidbody2D>().velocity = transform.InverseTransformDirection(Vector2.zero);
+        tip.GetComponent<Rigidbody2D>().velocity = transform.parent.InverseTransformDirection(Vector2.zero);
         tip.GetComponent<SliderJoint2D>().enabled = true;
         tip.GetComponent<FixedJoint2D>().enabled = true;
-        tip.GetComponent<Sticky>().defStick();
-        headDists[0].distance = width*(1+outScale);
-        headDists[1].distance = width*1.5F;
+        tip.GetComponent<Sticky>().defStick(false);
+        headDists[0].distance = 2;
+        headDists[1].distance = 2;
         peaked = false;
     }
 
@@ -154,7 +172,7 @@ public class TongueManager : MonoBehaviour
             lPos = last.transform.localPosition;
             setConstraints(last, next);
             //this sets the distance joint that keeps the shape of the overall tongue relative to the head
-            headDists[0].distance = (width*(1+outScale))+(tongueSegs.Count*width*outScale*lengthMod);
+            headDists[0].distance = width*((2)+(tongueSegs.Count*outScale*lengthMod));
 
             //prepare conditions for next loop
             next = getNext();
@@ -203,7 +221,7 @@ public class TongueManager : MonoBehaviour
             if(lPos.y < width && lPos.y > -width){
                 decon(last);
                 // getNext().GetComponent<SliderJoint2D>().enabled = true;
-                headDists[0].distance = (width*(1+outScale))+(tongueSegs.Count*width*outScale*lengthMod);
+                headDists[0].distance = width*((1+outScale)+(tongueSegs.Count*outScale*lengthMod));
                 headDists[1].connectedBody = getNext().GetComponent<Rigidbody2D>();
             }
     }
