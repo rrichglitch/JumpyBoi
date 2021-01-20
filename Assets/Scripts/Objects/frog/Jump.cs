@@ -10,7 +10,7 @@ public class Jump : MonoBehaviour
     private bool jumping = false;
     private float[] initTorqs = new float[3];
 
-    void OnJump(InputValue val){jumping = val.isPressed;}
+    public void OnJump(InputAction.CallbackContext ctx){jumping = ctx.performed;}
 
     // Start is called before the first frame update
     void Start()

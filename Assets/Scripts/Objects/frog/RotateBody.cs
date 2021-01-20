@@ -14,7 +14,7 @@ public class RotateBody : MonoBehaviour
     private JointAngleLimits2D lims;
     private float initMax;
     private float initTorq;
-    void OnRotateBod(InputValue val){rotating = val.isPressed;}
+    public void OnRotateBod(InputAction.CallbackContext ctx){rotating = ctx.performed;}
     void Start()
     {
         hj2D = GetComponent<HingeJoint2D>();

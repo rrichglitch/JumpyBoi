@@ -2,45 +2,13 @@
     "name": "Frog Controls",
     "maps": [
         {
-            "name": "KB",
-            "id": "d39b2a66-fcfd-40da-890e-204804e87f5a",
+            "name": "Basic",
+            "id": "5707cdd6-3415-4857-8ff8-3ee8189dab24",
             "actions": [
                 {
                     "name": "Menu",
                     "type": "Button",
-                    "id": "101181d0-59fc-4e9a-a0da-589fe0012a54",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Jump",
-                    "type": "Value",
-                    "id": "4e2c2bf6-0844-4c24-a2ce-cf498118455d",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "RotateBod",
-                    "type": "Value",
-                    "id": "c68ace70-531d-4e0e-828f-ee35e4badcb4",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Tongue",
-                    "type": "Value",
-                    "id": "9917bbf4-535f-471b-b23a-475fbb87c701",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Record",
-                    "type": "Button",
-                    "id": "cdf78b28-24bf-48c0-9441-0196c2c4ba1d",
+                    "id": "29de6a69-3fe8-46ce-987a-b65fcc113646",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -48,7 +16,39 @@
                 {
                     "name": "Test",
                     "type": "Button",
-                    "id": "34f7ef84-5f84-4798-ad42-4150fe6568de",
+                    "id": "502c1fa5-06a0-4b1c-955f-29b89c11b67b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Record",
+                    "type": "Button",
+                    "id": "0b53d29a-3381-43f3-8d8f-4b1b54dfe69b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "RotateBod",
+                    "type": "Value",
+                    "id": "e72586ed-e4bd-4361-aa82-56f17a95bff5",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Jump",
+                    "type": "Value",
+                    "id": "e82f0cf9-dd55-4121-95e1-9a737edba1d1",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Tongue",
+                    "type": "Value",
+                    "id": "923f2d98-c31f-4d1e-80f0-871d2f1b1ae8",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -57,18 +57,7 @@
             "bindings": [
                 {
                     "name": "",
-                    "id": "9ddf61aa-db78-4ad6-9c86-d7753df19a98",
-                    "path": "<Keyboard>/space",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Jump",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "f7808e88-b60c-457f-b26b-091b5e579fbe",
+                    "id": "f98f0e6e-6f6d-4104-813e-8f89f6c6710d",
                     "path": "<Keyboard>/escape",
                     "interactions": "",
                     "processors": "",
@@ -79,29 +68,18 @@
                 },
                 {
                     "name": "",
-                    "id": "4dc7d4e1-6ae1-4890-a3e4-7913c0fbcc7c",
-                    "path": "<Keyboard>/w",
+                    "id": "623816fd-6bb9-43ad-9c35-9aa2d28d6a43",
+                    "path": "<Keyboard>/t",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RotateBod",
+                    "action": "Test",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "df214f06-caeb-4f93-a94c-4fc924f3ad6b",
-                    "path": "<Keyboard>/e",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Tongue",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "e6a8732d-cdf5-49f7-a805-7e0a7f32b904",
+                    "id": "732aacac-0c16-448f-b193-6d53e696c876",
                     "path": "<Keyboard>/g",
                     "interactions": "",
                     "processors": "",
@@ -112,62 +90,19 @@
                 },
                 {
                     "name": "",
-                    "id": "7c4baaee-9ead-4d7f-bbbf-95c71962bd12",
-                    "path": "<Keyboard>/t",
+                    "id": "fe7ea53e-6088-4b34-9e76-4ed506e3f949",
+                    "path": "<Keyboard>/w",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Test",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                }
-            ]
-        },
-        {
-            "name": "Sticks",
-            "id": "0934c6eb-a3ba-4fb8-b6a2-449c1b218159",
-            "actions": [
-                {
-                    "name": "Menu",
-                    "type": "Button",
-                    "id": "72ef3980-f65e-4dcf-8f65-bfc64d069747",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Jump",
-                    "type": "Value",
-                    "id": "187a3c40-a9e6-4e68-a2e3-95911b42356e",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "RotateBod",
-                    "type": "Value",
-                    "id": "13319960-2590-4781-a5a7-bf091b616db3",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                }
-            ],
-            "bindings": [
-                {
-                    "name": "",
-                    "id": "aae533eb-4b03-40ee-a437-5bbb86517127",
-                    "path": "<Gamepad>/start",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Menu",
+                    "action": "RotateBod",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "dc958856-7fdc-49e0-9554-f4882f6dec60",
-                    "path": "<Gamepad>/buttonSouth",
+                    "id": "978767e5-ef0f-4aa9-8945-64885e379e03",
+                    "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -177,12 +112,12 @@
                 },
                 {
                     "name": "",
-                    "id": "840c4d03-fcc6-4952-8bd4-6f5124b71651",
-                    "path": "<Gamepad>/rightShoulder",
+                    "id": "2f631321-5fb8-44ff-a701-1147c3aaddd8",
+                    "path": "<Keyboard>/e",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RotateBod",
+                    "action": "Tongue",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

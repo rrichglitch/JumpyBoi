@@ -2,31 +2,32 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Experimental.Rendering.Universal;
 
 public class TongueManager : MonoBehaviour
 {
-    //prefab of the tongue segments
-    public GameObject prefab;
-    public float outScale;
-    public float inScale;
-    public float speed;
-    public int maxSegs;
-    public float pullForce;
-    //th is true when the tongue button is being held
-    private bool th = false;
+    [SerializeField] private GameObject prefab; //prefab of the tongue segments
+    [SerializeField] private float outScale;
+    [SerializeField] private float inScale;
+    [SerializeField] private float speed;
+    [SerializeField] private int maxSegs;
+    [SerializeField] private float pullForce;
+    [SerializeField] private float lengthMod;
+    public bool someStuck {get; private set;} = false; //true when atleast one tongue segment is sticking to something
+    public bool th {get; private set;} = false; //th is true when the tongue button is being held
+    private GameObject last;
+    private GameObject next;
     private bool physd;
     private float width;
     private Vector2 startPos;
-    //retractGap is the amount of time between pulling segments of tongue back into the mouth, while the tongue button is not being held
-    public float lengthMod;
     private Transform tip;
-    private DistanceJoint2D[] headDists;
     private bool peaked = false;
-    public bool someStuck = false;
-    private GameObject last;
-    private GameObject next;
-    private Vector2 lPos;
-    public List<GameObject> tongueSegs = new List<GameObject>();
+    private bool tLit = false;
+    private Color tCol;
+    private Color fCol;
+    private DistanceJoint2D[] headDists;
+    public List<GameObject> tongueSegs {get; private set;} = new List<GameObject>();
+    private List<GameObject> tongueHid = new List<GameObject>();
 
 
     // Start is called before the first frame update
@@ -36,17 +37,38 @@ public class TongueManager : MonoBehaviour
         tip = transform.GetChild(0);
         tip.GetComponent<Sticky>().defStick(false);
         headDists = transform.parent.GetComponents<DistanceJoint2D>();
+        tCol = tip.GetComponent<Light2D>().color;
+        next = tip.gameObject;
+        for(int i = 0; i < maxSegs; i++){
+            tongueHid.Add(Instantiate(prefab, transform));
+            tongueHid[i].SetActive(false);
+
+            if(tongueHid.Count > 1) next = tongueHid[tongueHid.Count-2];
+            initConstraints(tongueHid[i], next);
+        }
+    }
+    private void initConstraints(GameObject last, GameObject next){
+        last.GetComponent<SliderJoint2D>().connectedBody = transform.parent.GetComponent<Rigidbody2D>();
+        last.GetComponent<HingeJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
+        last.GetComponent<DistanceJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
+        if(next.name == "Tongue_Tip"){
+            Vector2 conAnc = last.GetComponent<HingeJoint2D>().connectedAnchor;
+            conAnc.x *= 1.1F;
+            last.GetComponent<HingeJoint2D>().connectedAnchor = conAnc;
+            last.GetComponent<DistanceJoint2D>().connectedAnchor = conAnc;
+        }
+        if(tongueHid.Count < 10) last.GetComponent<Sticky>().breakForce += tip.GetComponent<Sticky>().breakForce/(tongueHid.Count+1);
     }
 
     //handles shooting the tongue and then deactivating the stickiness
-    public void OnTongue(object value){
-        if(value is InputValue)
-            th=((InputValue)value).isPressed;
-        else th = (bool)value;
+    public void OnTongue(InputAction.CallbackContext ctx){
+        th = ctx.performed;
+        // Debug.Log("tongue");
         if(th){
             //shoot the tip of the tongue
-            if(tip.GetComponent<FixedJoint2D>().enabled){
-                tip.GetComponent<FixedJoint2D>().enabled = false;
+            FixedJoint2D fj = tip.GetComponent<FixedJoint2D>();
+            if(fj.enabled){
+                fj.enabled = false;
 
                 // the actual change in position from velocity is velocity/50 every physics step
                 Vector2 vel = tip.InverseTransformDirection(tip.GetComponent<Rigidbody2D>().velocity);
@@ -64,19 +86,22 @@ public class TongueManager : MonoBehaviour
                 transform.parent.GetComponent<Rigidbody2D>().AddForce(tip.TransformDirection(new Vector2(speed*-.1F,0)), ForceMode2D.Impulse);
                 tip.GetComponent<Sticky>().defStick();
             }
-            //suppress the stickiness of the tip for a second
             else{
-                foreach(Sticky s in GetComponentsInChildren<Sticky>()){
-                    for (int i = s.stucks.Count - 1; i >= 0; i--){
-                        Destroy(s.stucks[i]);
-                        s.stucks.Remove(s.stucks[i]);
-                    }
-                    s.defStick(false);
+                // Debug.Log("button with tongue out");
+                //suppress the stickiness of the tongue
+                for(int i = 0; i < tongueHid.Count; i++){
+                    tongueHid[i].GetComponent<Sticky>().clearSticks();
+                    tongueHid[i].GetComponent<Sticky>().defStick(false);
                 }
+                tip.GetComponent<Sticky>().clearSticks();
+                tip.GetComponent<Sticky>().defStick(false);
                 // StartCoroutine(reStick());
             }
         }
     }
+    // private void stickAll(){
+    //     foreach(Sticky s in GetComponentsInChildren<Sticky>()) s.defStick(true);
+    // }
 
     //turns the stickiness back on after a second
     IEnumerator waiter(float fl){
@@ -87,26 +112,27 @@ public class TongueManager : MonoBehaviour
 
     // Update is called once per frame
     void Update(){
+        //make debugging ray that points where the tip measures distance
         Vector2 rayStart = tip.localPosition;
         rayStart.x += .56F;
         rayStart = tip.TransformPoint(rayStart);
         Debug.DrawRay(rayStart, tip.TransformDirection(Vector2.right), Color.green);
+
+        spawn();
+
         //stuff to run when the tongue is out
         if(tongueSegs.Count > 0){
-            last = tongueSegs[tongueSegs.Count-1];
             //tighten leash(distance joint) from head to last seg
-            if(!th || tongueSegs.Count > maxSegs-3 || transform.InverseTransformDirection(last.GetComponent<Rigidbody2D>().velocity).x < -.1) headDists[1].distance = .12F;
+            if(!th || tongueSegs.Count > maxSegs-3 || transform.InverseTransformDirection(tongueSegs[tongueSegs.Count-1].GetComponent<Rigidbody2D>().velocity).x < -.1) headDists[1].distance = .12F;
             
             if(!th){
                 peaked = true;
-                lPos = last.transform.localPosition;
                 eatLast();
                 //covers the case when there is only one segment and its not moving in
                 if(tongueSegs.Count == 1){
-                    decon(tongueSegs[tongueSegs.Count-1]);
-                    headDists[1].connectedBody = getNext().GetComponent<Rigidbody2D>();
+                    putAwayNeat();
                     slurp();
-                }                        
+                }
             }
         }
         else if(peaked) slurp();
@@ -117,10 +143,9 @@ public class TongueManager : MonoBehaviour
     }
     void FixedUpdate(){
         physd=true;
+        // put methods that actually move shit here so that the movement is consistent
         spawn();
-        if(tongueSegs.Count > 1 && !th){
-            pull();
-        }
+        pull();
     }
 
     //wee helper method to set the segment second to last as "next", make sure to set next BEFORE adding "last"
@@ -129,33 +154,6 @@ public class TongueManager : MonoBehaviour
         return tip.gameObject;
     }
 
-    //set the component constraints on the parameters
-    private void setConstraints(GameObject last, GameObject next){
-        headDists[1].connectedBody = last.GetComponent<Rigidbody2D>();
-        last.GetComponent<SliderJoint2D>().connectedBody = transform.parent.GetComponent<Rigidbody2D>();
-        last.GetComponent<HingeJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
-        last.GetComponent<DistanceJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
-        next.GetComponent<SliderJoint2D>().enabled = false;
-        if(next.name == "Tongue_Tip") last.GetComponent<DistanceJoint2D>().autoConfigureConnectedAnchor = true;
-        if(tongueSegs.Count < 10) last.GetComponent<Sticky>().breakForce += tip.GetComponent<Sticky>().breakForce/(tongueSegs.Count+1);
-    }
-
-    //pull the tip back into position in mouth
-    private void slurp(){
-        tip.position = transform.position;
-        tip.rotation = transform.rotation;
-        for (int i = tip.GetComponent<Sticky>().stucks.Count - 1; i >= 0; i--){
-            Destroy(tip.GetComponent<Sticky>().stucks[i]);
-            tip.GetComponent<Sticky>().stucks.Remove(tip.GetComponent<Sticky>().stucks[i]);
-        }
-        tip.GetComponent<Rigidbody2D>().velocity = transform.parent.InverseTransformDirection(Vector2.zero);
-        tip.GetComponent<SliderJoint2D>().enabled = true;
-        tip.GetComponent<FixedJoint2D>().enabled = true;
-        tip.GetComponent<Sticky>().defStick(false);
-        headDists[0].distance = 2;
-        headDists[1].distance = 2;
-        peaked = false;
-    }
 
     private void spawn(){
         //loop to build segments back from the part of the tongue out of the mouth
@@ -164,12 +162,13 @@ public class TongueManager : MonoBehaviour
         for(int lc = 0; spawnSpot.x > width*outScale && tongueSegs.Count < maxSegs && lc <maxSegs; lc++){
             //the tip needs to be slid back a bit due to the sprite size
             float mod = width*outScale/spawnSpot.magnitude;
-            if(next.name == "Tongue_Tip") spawnSpot = spawnSpot-(spawnSpot * mod*.8F);
+            if(next.name == "Tongue_Tip") spawnSpot = spawnSpot-(spawnSpot * width*outScale/(spawnSpot.magnitude*1.1F));
             else spawnSpot = spawnSpot-(spawnSpot * mod);
-            last = Instantiate(prefab, transform);
+            last = tongueHid[tongueSegs.Count];
             last.transform.localPosition = spawnSpot;
+            last.transform.localEulerAngles = Vector3.zero;
+            last.SetActive(true);
             tongueSegs.Add(last);
-            lPos = last.transform.localPosition;
             setConstraints(last, next);
             //this sets the distance joint that keeps the shape of the overall tongue relative to the head
             headDists[0].distance = width*((2)+(tongueSegs.Count*outScale*lengthMod));
@@ -179,54 +178,117 @@ public class TongueManager : MonoBehaviour
             spawnSpot = next.transform.localPosition;
         }
     }
+    
+    //set the component constraints on the parameters
+    private void setConstraints(GameObject last, GameObject next){
+        headDists[1].connectedBody = last.GetComponent<Rigidbody2D>();
+        last.GetComponent<SliderJoint2D>().connectedBody = transform.parent.GetComponent<Rigidbody2D>();
+        next.GetComponent<SliderJoint2D>().enabled = false;
+        if(last.transform.localPosition.magnitude > width*outScale*1.3F){
+            last.transform.rotation = Quaternion.Lerp(next.transform.rotation, transform.rotation, .5F);
+            last.GetComponent<Rigidbody2D>().velocity = (next.GetComponent<Rigidbody2D>().velocity + transform.parent.GetComponent<Rigidbody2D>().velocity)/2;
+        }
+    }
 
     private void pull(){
-        last = tongueSegs[tongueSegs.Count-1];
-        next = tongueSegs[tongueSegs.Count-2];
-        //vector math to approximate appropriate force on tongue by head
-        Vector2 force = transform.position - last.transform.position;
-        float mod = pullForce/force.magnitude;
-        Vector2 lv = last.GetComponent<Rigidbody2D>().velocity;
-        Vector2 mush = lv/force;
-        float mm = mush.x+mush.y;
-        // if(mm < 0) {
-        //     // next.GetComponent<Rigidbody2D>().MovePosition((Vector2)transform.position-(nv*(float).03));
-        //     for(int i = tongueSegs.Count-1; i >= 0; i--)
-        //         tongueSegs[i].GetComponent<Rigidbody2D>().AddForce((force*mod)*((i+1)/tongueSegs.Count));
-        // }
+        if(tongueSegs.Count > 1 && !th){
+            last = tongueSegs[tongueSegs.Count-1];
+            next = tongueSegs[tongueSegs.Count-2];
+            //vector math to approximate appropriate force on tongue by head
+            Vector2 force = transform.position - last.transform.position;
+            float mod = pullForce/force.magnitude;
+            Vector2 lv = last.GetComponent<Rigidbody2D>().velocity;
+            Vector2 mush = lv/force;
+            float mm = mush.x+mush.y;
+            // if(mm < 0) {
+            //     // next.GetComponent<Rigidbody2D>().MovePosition((Vector2)transform.position-(nv*(float).03));
+            //     for(int i = tongueSegs.Count-1; i >= 0; i--)
+            //         tongueSegs[i].GetComponent<Rigidbody2D>().AddForce((force*mod)*((i+1)/tongueSegs.Count));
+            // }
 
-        //a few lines to try and damper orbital movement
-        // Debug.Log(last.transform.InverseTransformDirection(lv));
-        last.GetComponent<Rigidbody2D>().velocity = last.transform.TransformDirection(new Vector2(last.transform.InverseTransformDirection(lv).x*.6F,0));
-        Vector2 nlv = next.transform.InverseTransformDirection(next.GetComponent<Rigidbody2D>().velocity);
-        next.GetComponent<Rigidbody2D>().velocity = next.transform.TransformDirection(new Vector2(nlv.x*.8F,nlv.y/4));
-        // Debug.Log(last.transform.InverseTransformDirection(last.GetComponent<Rigidbody2D>().velocity));
+            //a few lines to try and damper orbital movement
+            // Debug.Log(last.transform.InverseTransformDirection(lv));
+            last.GetComponent<Rigidbody2D>().velocity = last.transform.TransformDirection(new Vector2(last.transform.InverseTransformDirection(lv).x*.6F,0));
+            Vector2 nlv = next.transform.InverseTransformDirection(next.GetComponent<Rigidbody2D>().velocity);
+            next.GetComponent<Rigidbody2D>().velocity = next.transform.TransformDirection(new Vector2(nlv.x*.8F,nlv.y/4));
+            // Debug.Log(last.transform.InverseTransformDirection(last.GetComponent<Rigidbody2D>().velocity));
 
-        last.GetComponent<Rigidbody2D>().AddForce(force*mod);
-        someStuck = false;
-        foreach(Sticky s in GetComponentsInChildren<Sticky>())
-            if(s.stucks.Count > 0){
-                someStuck = true;
-                break;
-            }
-        if(!someStuck)
-            transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod*.05F);
-        else
-            transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod);
+            last.GetComponent<Rigidbody2D>().AddForce(force*mod);
+            someStuck = false;
+            foreach(Sticky s in GetComponentsInChildren<Sticky>(true))
+                if(s.stucks.Count > 0){
+                    someStuck = true;
+                    break;
+                }
+            if(!someStuck)
+                transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod*.05F);
+            else
+                transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod);
+        }
     }
 
     //destroy the segment in mouth. separate deconstruct section fixes decon happening without actually being "in mouth"
     private void eatLast(){
+        Vector2 lPos = tongueSegs[tongueSegs.Count-1].transform.localPosition;
         if(lPos.x < width*inScale && lPos.x > -width)
             if(lPos.y < width && lPos.y > -width){
-                decon(last);
-                // getNext().GetComponent<SliderJoint2D>().enabled = true;
+                putAwayNeat();
                 headDists[0].distance = width*((1+outScale)+(tongueSegs.Count*outScale*lengthMod));
-                headDists[1].connectedBody = getNext().GetComponent<Rigidbody2D>();
             }
+    }
+    private void putAwayNeat(){
+        last = tongueSegs[tongueSegs.Count-1];
+        Sticky s = last.GetComponent<Sticky>();
+        s.clearSticks();
+        s.defStick();
+        decon(last);
+        headDists[1].connectedBody = getNext().GetComponent<Rigidbody2D>();
     }
     private void decon(GameObject del){
         tongueSegs.Remove(del);
-        Destroy(del);
+        del.SetActive(false);
+        del.transform.position = transform.position;
+        del.transform.rotation = transform.rotation;
+        del.GetComponent<Rigidbody2D>().velocity = transform.parent.InverseTransformDirection(Vector2.zero);
+        del.GetComponent<SliderJoint2D>().enabled = true;
+    }
+    
+    //pull the tip back into position in mouth
+    private void slurp(){
+        tip.position = transform.position;
+        tip.rotation = transform.rotation;
+        Sticky s = tip.GetComponent<Sticky>();
+        s.clearSticks();
+        s.defStick(false);
+        tip.GetComponent<Rigidbody2D>().velocity = transform.parent.InverseTransformDirection(Vector2.zero);
+        tip.GetComponent<SliderJoint2D>().enabled = true;
+        tip.GetComponent<FixedJoint2D>().enabled = true;
+        headDists[0].distance = 2;
+        headDists[1].distance = 2;
+        peaked = false;
+        tLitToggle();
+    }
+    void rad(object[] args){
+        Light2D li = (Light2D)args[0];
+        li.color = (Color)args[1];
+        li.enabled = true;
+        fCol = (Color)args[1];
+        tLit = true;
+    }
+    void unRad(object[] args){
+        Light2D li = (Light2D)args[0];
+        tLit = (GetComponent<Status>().getEffect("radiate").Count > 0);
+        if(tLit) fCol = (Color)args[2];
+        else{
+            fCol = tCol;
+            tLitToggle();
+        }
+        li.color = (Color)args[2];
+        li.enabled = (bool)args[1];
+    }
+    void tLitToggle(){
+        if(tLit) tip.GetComponent<Light2D>().color = fCol;
+        else tip.GetComponent<Light2D>().color = tCol;
+        tip.GetComponent<Light2D>().enabled = tLit;
     }
 }

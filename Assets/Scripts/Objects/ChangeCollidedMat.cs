@@ -12,7 +12,7 @@ public class ChangeCollidedMat : MonoBehaviour
     void OnTriggerEnter2D(Collider2D oColid){
         if(!timers.ContainsKey(oColid)){
             PhysicsMaterial2D old = oColid.sharedMaterial;
-            object cas = "";
+            StringWrapper cas = new StringWrapper("");
             timers.Add(oColid, new object[]{old,null, cas});
             oColid.sharedMaterial = changeTo;
             Status sta = oColid.gameObject.GetComponent<Status>();
@@ -34,7 +34,6 @@ public class ChangeCollidedMat : MonoBehaviour
         if(oColid && timers.ContainsKey(oColid)){
             switch(timers[oColid][2]){
                 case "":
-                    Debug.Log("cas is empty");
                     if(Time.time - (float)timers[oColid][1] >= wait){
                         oColid.sharedMaterial = (PhysicsMaterial2D)timers[oColid][0];
                         timers.Remove(oColid);
@@ -44,7 +43,7 @@ public class ChangeCollidedMat : MonoBehaviour
                     if(Time.time - (float)timers[oColid][1] >= wait){
                         oColid.sharedMaterial = (PhysicsMaterial2D)timers[oColid][0];
                         Status sta = oColid.gameObject.GetComponent<Status>();
-                        if(sta) sta.removeEffect(effectName, timers[oColid][2]);
+                        if(sta) sta.removeEffect(effectName, (StringWrapper)timers[oColid][2]);
                         timers.Remove(oColid);
                     }
                     break;

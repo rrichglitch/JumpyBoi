@@ -15,8 +15,8 @@ public class GenCons : MonoBehaviour
     private bool run = false;
     // private InValWrap tru = new InValWrap(){isPressed = true};
     // private InValWrap fal = new InValWrap();
-    void OnMenu(){ SceneManager.LoadScene("MainMenu"); }
-    void OnRecord(){
+    public void OnMenu(){ SceneManager.LoadScene("MainMenu"); }
+    public void OnRecord(){
         m_Recorder.Save();
         Commons.Instance.notify("gif saved");
     }
@@ -41,7 +41,7 @@ public class GenCons : MonoBehaviour
         m_Recorder.Record();
         m_Recorder.OnFileSaved = OnFileSaved;
     }
-    void OnTest(){
+    public void OnTest(){
         Commons.Instance.notify(""+(Math.Ceiling(frameCount/frameInterval)*frameInterval));
         run = !run;
         // Debug.Log("");
@@ -51,16 +51,10 @@ public class GenCons : MonoBehaviour
     void Update(){
         // a setup that calls a function every frameInterval frames
         // the function that gets called must be modded to accept the calls first
-        frameCount++;
-        // Debug.Log(frameCount);
-        if(run){
-            if(frameCount%frameInterval==0){
-                // Debug.Log(transform.GetChild(0).Find("Head").Find("Tongue"));
-                if((frameCount/frameInterval)%2==1)
-                    transform.GetChild(0).Find("Head").Find("Tongue").GetComponent<TongueManager>().OnTongue(true);
-                else
-                    transform.GetChild(0).Find("Head").Find("Tongue").GetComponent<TongueManager>().OnTongue(false);
-            }
-        }
+        // frameCount++;
+        // // Debug.Log(frameCount);
+        // if(run){
+        //      
+        // }
     }
 }

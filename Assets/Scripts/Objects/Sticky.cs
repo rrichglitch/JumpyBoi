@@ -7,7 +7,7 @@ public class Sticky : MonoBehaviour
     public float breakForce;
 
     private bool stickOn;
-    public List<Joint2D> stucks = new List<Joint2D>();
+    public List<Joint2D> stucks {get; private set;} = new List<Joint2D>();
     public List<Rigidbody2D> free;
     [SerializeField] private bool defVal = true;
     void Start(){
@@ -31,5 +31,14 @@ public class Sticky : MonoBehaviour
         if(ind != -1)
             stucks.RemoveAt(ind);
     }
-    public bool defStick(bool set = true){if(set) stickOn = defVal; else stickOn = set; return stickOn;}
+    public void clearSticks(){
+        // foreach(Joint2D j in stucks)
+        //     Destroy(j);
+        // stucks.Clear();
+        for(int i = stucks.Count-1; i >=0; i--){
+            Destroy(stucks[i]);
+            stucks.RemoveAt(i);
+        }
+    }
+    public void defStick(bool set = true){if(set) stickOn = defVal; else stickOn = set;}
 }
