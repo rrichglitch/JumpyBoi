@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Experimental.Rendering.Universal;
 
-public class TongueManager : MonoBehaviour
+public class TongueManager : MonoBehaviour, Listener
 {
     [SerializeField] private GameObject prefab; //prefab of the tongue segments
     [SerializeField] private float outScale;
@@ -268,14 +268,14 @@ public class TongueManager : MonoBehaviour
         peaked = false;
         tLitToggle();
     }
-    void mRadiate(object[] args){
-        Debug.Log("tongue_rad");
+    public bool mRadiate(object[] args){
         ((Effect)args[2]).doIt((GameObject)args[0]);
 
         fCol = (Color)((object[])args[1])[1];
         tLit = true;
+        return true;
     }
-    void unRadiate(object[] args){
+    public bool unRadiate(object[] args){
         ((Effect)args[2]).unDoIt(new object[]{args[0], args[1]});
         // Debug.Log(li.name);
         
@@ -286,10 +286,12 @@ public class TongueManager : MonoBehaviour
             fCol = tCol;
             tLitToggle();
         }
+        return true;
     }
     void tLitToggle(){
         if(tLit) tip.GetComponent<Light2D>().color = fCol;
         else tip.GetComponent<Light2D>().color = tCol;
         tip.GetComponent<Light2D>().enabled = tLit;
     }
+    public void reflec(object[] args){Debug.Log("got method");}
 }

@@ -17,7 +17,7 @@ public class Status : MonoBehaviour
         // Debug.Log(type);
         if(!effects.ContainsKey(eff.name))
             effects.Add(eff.name, new Dictionary<StringWrapper, GameObject>());
-        Debug.Log("number of effects: "+effects.Count);
+        // Debug.Log("number of effects: "+effects.Count);
         if(!effects[eff.name].ContainsKey(cas)){
             cas.set("0");
             effects[eff.name].Add(cas, from);

@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering.Universal;
 public class Radiate : Effect
 {
     [SerializeField] private Color newCol;
-    public const string Name = "Radiatey";
+    public const string Name = "Radiate";
     public override string name {get{return Name;}}
     public override bool check(GameObject other){
         if(other.GetComponent<Light2D>())

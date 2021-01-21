@@ -32,8 +32,8 @@ public class MakeEffect : MonoBehaviour
                 
                 if(sta){
                     sta.addEffect(eff, cas, gameObject);
-                    try{ Commons.mSendMessage(other, "m"+eff.name, new object[]{other, timers[other][1], eff}); }
-                    catch(Exception e){ eff.doIt(other); Debug.Log("caught");}
+                    Commons.mSendMessage(sta.gameObject, "m"+eff.name, new object[]{other, timers[other][1], eff});
+                    // catch(Exception e){ eff.doIt(other); Debug.Log("caught: "+eff.name);}
                 }
                 else eff.doIt(other);
             }
@@ -66,8 +66,7 @@ public class MakeEffect : MonoBehaviour
                             Status sta = other.GetComponent<Status>();
                             if(!sta) sta = other.GetComponent<StatChild>().rStat;
                             sta.removeEffect(eff, (StringWrapper)timers[other][0][1]);
-                            try{ Commons.mSendMessage(other, "un"+eff.name, new object[]{other, timers[other][1], eff}); }
-                            catch(Exception e){ eff.unDoIt(new object[]{other, timers[other][1]}); }
+                            Commons.mSendMessage(sta.gameObject, "un"+eff.name, new object[]{other, timers[other][1], eff});
                             break;
                     }
                 }
