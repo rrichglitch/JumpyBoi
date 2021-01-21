@@ -24,6 +24,7 @@ public class Commons : Singleton<Commons>
         anim.SetTrigger("pop");
     }
 
+    //methods to get invoked by this should return a value so it can be listened for by the invoker, otherwise it may be assumed the operation has failed
     public static object mSendMessage(GameObject receiver, string methodName, object[] value = null){
         object toRet = null;
         Component[] listens = receiver.GetComponents(typeof(Component));
