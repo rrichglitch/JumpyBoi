@@ -8,17 +8,20 @@ public class Status : MonoBehaviour
     //this class will hold any status effects of an object
     //and if I go deep enough the check method will hold immersive sim type interactions
     private Dictionary<string, Dictionary<StringWrapper, GameObject>> effects = new Dictionary<string, Dictionary<StringWrapper, GameObject>>(){
-        {"slips", new Dictionary<StringWrapper, GameObject>()},
-        {"radiate", new Dictionary<StringWrapper, GameObject>()}
+        {Radiate.Name, new Dictionary<StringWrapper, GameObject>()}
     };
 
     //add a new entry to the dictionary of the "type" effects
     //"cas" is the current state of the effect "type" from the source "from"
-    public bool addEffect(string type, StringWrapper cas, GameObject from){
-        if(!effects[type].ContainsKey(cas)){
+    public bool addEffect(Effect eff, StringWrapper cas, GameObject from){
+        // Debug.Log(type);
+        if(!effects.ContainsKey(eff.name))
+            effects.Add(eff.name, new Dictionary<StringWrapper, GameObject>());
+        Debug.Log("number of effects: "+effects.Count);
+        if(!effects[eff.name].ContainsKey(cas)){
             cas.set("0");
-            effects[type].Add(cas, from);
-            Check(type, cas);
+            effects[eff.name].Add(cas, from);
+            Check(eff.name, cas);
             // Debug.Log(effects["radiate"].Count);
             return true;
         }
@@ -26,11 +29,11 @@ public class Status : MonoBehaviour
     }
 
     //remove the entry with the key "cas" in the dictionary of the "type" effects
-    public bool removeEffect(string type, StringWrapper cas){
-        if(effects[type].ContainsKey(cas)){
+    public bool removeEffect(Effect eff, StringWrapper cas){
+        if(effects[eff.name].ContainsKey(cas)){
             StringWrapper save = cas;
-            effects[type].Remove(cas);
-            Check(type, save);
+            effects[eff.name].Remove(cas);
+            Check(eff.name, save);
             // Debug.Log(effects["radiate"].Count);
             return true;
         }
@@ -40,9 +43,9 @@ public class Status : MonoBehaviour
     //check active effects on this gameObject and adjust their functioning states
     void Check(string type, StringWrapper cas){
         switch(type){
-            case "slips":
+            case ChangeCollidedMat.Name:
                 break;
-            case "radiate":
+            case Radiate.Name:
                 break;
         }
     }

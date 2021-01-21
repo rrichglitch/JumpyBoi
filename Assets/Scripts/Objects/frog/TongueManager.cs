@@ -268,23 +268,24 @@ public class TongueManager : MonoBehaviour
         peaked = false;
         tLitToggle();
     }
-    void rad(object[] args){
-        Light2D li = (Light2D)args[0];
-        li.color = (Color)args[1];
-        li.enabled = true;
-        fCol = (Color)args[1];
+    void mRadiate(object[] args){
+        Debug.Log("tongue_rad");
+        ((Effect)args[2]).doIt((GameObject)args[0]);
+
+        fCol = (Color)((object[])args[1])[1];
         tLit = true;
     }
-    void unRad(object[] args){
-        Light2D li = (Light2D)args[0];
-        tLit = (GetComponent<Status>().getEffect("radiate").Count > 0);
-        if(tLit) fCol = (Color)args[2];
+    void unRadiate(object[] args){
+        ((Effect)args[2]).unDoIt(new object[]{args[0], args[1]});
+        // Debug.Log(li.name);
+        
+        //code to manage the special conditions for the tip
+        tLit = (GetComponent<Status>().getEffect(Radiate.Name).Count > 0);
+        if(tLit) fCol = (Color)((object[])args[1])[1];
         else{
             fCol = tCol;
             tLitToggle();
         }
-        li.color = (Color)args[2];
-        li.enabled = (bool)args[1];
     }
     void tLitToggle(){
         if(tLit) tip.GetComponent<Light2D>().color = fCol;
