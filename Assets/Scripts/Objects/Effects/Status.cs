@@ -7,9 +7,7 @@ public class Status : MonoBehaviour
 {
     //this class will hold any status effects of an object
     //and if I go deep enough the check method will hold immersive sim type interactions
-    private Dictionary<string, Dictionary<StringWrapper, GameObject>> effects = new Dictionary<string, Dictionary<StringWrapper, GameObject>>(){
-        {Radiate.Name, new Dictionary<StringWrapper, GameObject>()}
-    };
+    private Dictionary<string, Dictionary<StringWrapper, GameObject>> effects = new Dictionary<string, Dictionary<StringWrapper, GameObject>>();
 
     //add a new entry to the dictionary of the "type" effects
     //"cas" is the current state of the effect "type" from the source "from"

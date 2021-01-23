@@ -14,12 +14,12 @@ public class Sticky : MonoBehaviour
         // if(free == null && tongue) free = transform.parent.parent.GetComponent<StickFree>().free;
         stickOn = defVal;
     }
-    void OnTriggerEnter2D(Collider2D oColid){
+    void OnCollisionEnter2D(Collision2D oColid){
         if(stickOn){
-            if(!free.Contains(oColid.attachedRigidbody)){
+            if(!free.Contains(oColid.rigidbody)){
                 FixedJoint2D nj;
                 nj = gameObject.AddComponent<FixedJoint2D>() as FixedJoint2D;
-                nj.connectedBody = oColid.attachedRigidbody;
+                nj.connectedBody = oColid.rigidbody;
                 nj.breakForce = breakForce;
                 nj.breakTorque = breakForce;
                 stucks.Add(nj);

@@ -2,12 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StatChild : MonoBehaviour
+// A class to hold general info about the gameobject
+public class Info : MonoBehaviour
 {
-    [SerializeField] Status rstat;
+    //owner is the ulitmate parent of this object and should sometimes receive physics directly
+    [SerializeField] private Rigidbody2D owner;
+    public Rigidbody2D whole {get{return owner;}}
+    [SerializeField]private bool initRStat = false;
+    [SerializeField] private Status rstat;
     public Status rStat{get{ return rstat; }}
+    public List<string> flags = new List<string>();
     void Start(){
-        if(rstat == null){
+        if(initRStat && rstat == null){
             if(transform.parent != null){
                 Status sta = transform.parent.GetComponent<Status>();
                 if(sta != null)

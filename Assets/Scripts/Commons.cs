@@ -30,15 +30,16 @@ public class Commons : Singleton<Commons>
         Component[] listens = receiver.GetComponents(typeof(Component));
         // Debug.Log("list: "+ listens);
         foreach(Component c in listens){
-            if(c is Listener){
+            // if(c is Listener){
                 MethodInfo meth = c.GetType().GetMethod(methodName, new Type[]{typeof(object[])});
                 if(meth != null){
                     //run and save the return of the function
                     object save = meth.Invoke(c, new object[]{value});
                     if(save != null) toRet = save;
                 }
-            }
+            // }
         }
         return toRet;
     }
 }
+// public interface Listener{}

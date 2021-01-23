@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Experimental.Rendering.Universal;
 
-public class TongueManager : MonoBehaviour, Listener
+public class TongueManager : MonoBehaviour
 {
     [SerializeField] private GameObject prefab; //prefab of the tongue segments
     [SerializeField] private float outScale;

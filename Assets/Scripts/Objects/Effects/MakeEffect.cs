@@ -26,8 +26,8 @@ public class MakeEffect : MonoBehaviour
                 Status sta = oColid.gameObject.GetComponent<Status>();
                 // Debug.Log(sta);
                 if(!sta){
-                    StatChild staCh = oColid.gameObject.GetComponent<StatChild>();
-                    if(staCh) sta = staCh.rStat;
+                    Info staCh = oColid.gameObject.GetComponent<Info>();
+                    if(staCh && staCh.rStat) sta = staCh.rStat;
                 }
                 
                 if(sta){
@@ -65,7 +65,7 @@ public class MakeEffect : MonoBehaviour
                             break;
                         case "0":
                             Status sta = other.GetComponent<Status>();
-                            if(!sta) sta = other.GetComponent<StatChild>().rStat;
+                            if(!sta) sta = other.GetComponent<Info>().rStat;
                             sta.removeEffect(eff, (StringWrapper)timers[other][0][1]);
                             if(Commons.mSendMessage(sta.gameObject, "un"+eff.name, new object[]{other, timers[other][1], eff}) == null)
                                 eff.unDoIt(new object[]{other, timers[other][1]});
