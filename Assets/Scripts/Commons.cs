@@ -10,6 +10,8 @@ public class Commons : Singleton<Commons>
     // public static float weak;
     public float weak;
     public float buttl;
+    public GameObject body;
+    public static bool useTongue = true;
     [SerializeField] private GameObject notifation;
     private Animator anim;
     private TMP_Text notiText;
@@ -18,6 +20,7 @@ public class Commons : Singleton<Commons>
         notiText = notifation.transform.GetChild(0).GetComponent<TMP_Text>();
     }
 
+    //sends a notification to the screen in-game
     public void notify(string text){
         notifation.SetActive(true);
         notiText.text = text;

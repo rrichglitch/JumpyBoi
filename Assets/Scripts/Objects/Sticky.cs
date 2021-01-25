@@ -14,6 +14,8 @@ public class Sticky : MonoBehaviour
         // if(free == null && tongue) free = transform.parent.parent.GetComponent<StickFree>().free;
         stickOn = defVal;
     }
+
+    //make a new fixed joint and add it to the list so it can be managed later
     void OnCollisionEnter2D(Collision2D oColid){
         if(stickOn){
             if(!free.Contains(oColid.rigidbody)){
@@ -26,11 +28,15 @@ public class Sticky : MonoBehaviour
             }
         }
     }
+
+    //remove a joint from the list of owned joints it breaks
     void OnJointBreak2D(Joint2D broke){
         int ind = stucks.IndexOf(broke);
         if(ind != -1)
             stucks.RemoveAt(ind);
     }
+
+    //a simple method to run through and clear all the joints this script has made
     public void clearSticks(){
         // foreach(Joint2D j in stucks)
         //     Destroy(j);

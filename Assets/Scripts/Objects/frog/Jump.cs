@@ -16,6 +16,7 @@ public class Jump : MonoBehaviour
     void Start()
     {
         int index = 0;
+        //grab the arm, calf, and foot and there torque strength and throught these values into corresponding arrays
         foreach(HingeJoint2D hj in GetComponentsInChildren<HingeJoint2D>(false)){
             if(hj.name == "Arm"||hj.name == "Calf"||hj.name == "Foot"){
                 HJs[index] = hj;
@@ -29,6 +30,7 @@ public class Jump : MonoBehaviour
     void Update()
     {
         JointMotor2D save;
+        //apply custom logic per body part to extend the leg
         if(jumping){
             for(int i = 0;i<HJs.Length;i++){
                 save = HJs[i].motor;
@@ -40,7 +42,9 @@ public class Jump : MonoBehaviour
 
                 HJs[i].motor = save;
             }
-        }else{
+        }
+        //apply custom logic per body part to retract back to the base state
+        else{
             for(int i = 0;i<HJs.Length;i++){
                 save = HJs[i].motor;
 

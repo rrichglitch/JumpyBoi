@@ -14,7 +14,7 @@ TagManager:
   - 
   - 
   - Frog
-  - 
+  - Phase
   - 
   - 
   - 
@@ -38,6 +38,12 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: BG
+    uniqueID: 4089898211
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: FG
+    uniqueID: 153354741
     locked: 0

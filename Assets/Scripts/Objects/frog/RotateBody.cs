@@ -27,17 +27,22 @@ public class RotateBody : MonoBehaviour
     }
     void Update()
     {
+        //if the rotate button is held then apply a torque on the waist
         if(rotating){
             motor.motorSpeed = speed;
             motor.maxMotorTorque = initTorq;
         }
+        //otherwise apply a lesser toque in the opposite direction towards the base state
         else{
             motor.motorSpeed = speed*(float)-.5;
             if(transform.GetComponent<Rigidbody2D>().velocity.magnitude > 5) motor.maxMotorTorque = Commons.Instance.weak;
             else motor.maxMotorTorque = initTorq;
         }
         hj2D.motor = motor;
+
+        //use limmits to keep the arm somewhat inline with the rotation at the waist
         lims.max = initMax - (float)((startRot-hj2D.jointAngle)*.6);
+        //cap the min and max values
         if(lims.max > lims.min + 190) lims.max = lims.min + 190;
         if(lims.max < lims.min + 95) lims.max = lims.min + 95;
         arm.limits = lims;
