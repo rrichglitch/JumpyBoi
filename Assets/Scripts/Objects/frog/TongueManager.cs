@@ -13,6 +13,7 @@ public class TongueManager : MonoBehaviour
     [SerializeField] private int maxSegs;
     [SerializeField] private float pullForce;
     [SerializeField] private float lengthMod;
+    [SerializeField] private float rayOffset;
     public bool someStuck {get; private set;} = false; //true when atleast one tongue segment is sticking to something
     public bool th {get; private set;} = false; //th is true when the tongue button is being held
     public bool isOverlapping = false;
@@ -78,7 +79,7 @@ public class TongueManager : MonoBehaviour
 
                     // check if there is something infront of the mouth that the tongue will get stuck in and adjust the velocity accordingly
                     Vector2 rayStart = tip.localPosition;
-                    rayStart.x += .56F;
+                    rayStart.x += rayOffset;
                     rayStart = tip.TransformPoint(rayStart);
                     RaycastHit2D rCH2D= Physics2D.Raycast(rayStart, tip.TransformDirection(Vector2.right), speed*.01F);
                     if(rCH2D) vel.x += speed * (.1F + rCH2D.fraction);
@@ -145,7 +146,7 @@ public class TongueManager : MonoBehaviour
         // Debug.Log(th);
         //make debugging ray that points where the tip measures distance
         Vector2 rayStart = tip.localPosition;
-        rayStart.x += .56F;
+        rayStart.x += rayOffset;
         rayStart = tip.TransformPoint(rayStart);
         Debug.DrawRay(rayStart, tip.TransformDirection(Vector2.right), Color.green);
 

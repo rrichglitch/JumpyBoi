@@ -10,20 +10,20 @@ public class RotateBody : MonoBehaviour
     private JointMotor2D motor;
     private bool rotating = false;
     private float startRot;
-    private HingeJoint2D arm;
-    private JointAngleLimits2D lims;
-    private float initMax;
+    // private HingeJoint2D arm;
+    // private JointAngleLimits2D lims;
+    // private float initMax;
     private float initTorq;
     public void OnRotateBod(InputAction.CallbackContext ctx){rotating = ctx.performed;}
     void Start()
     {
         hj2D = GetComponent<HingeJoint2D>();
         motor = hj2D.motor;
-        arm = transform.parent.Find("Arm").GetComponent<HingeJoint2D>();
         startRot = hj2D.jointAngle;
-        lims = arm.limits;
-        initMax = lims.max;
         initTorq = motor.maxMotorTorque;
+        // arm = transform.parent.Find("Arm").GetComponent<HingeJoint2D>();
+        // lims = arm.limits;
+        // initMax = lims.max;
     }
     void Update()
     {
@@ -41,10 +41,10 @@ public class RotateBody : MonoBehaviour
         hj2D.motor = motor;
 
         //use limmits to keep the arm somewhat inline with the rotation at the waist
-        lims.max = initMax - (float)((startRot-hj2D.jointAngle)*.6);
-        //cap the min and max values
-        if(lims.max > lims.min + 190) lims.max = lims.min + 190;
-        if(lims.max < lims.min + 95) lims.max = lims.min + 95;
-        arm.limits = lims;
+        // lims.max = initMax - (float)((startRot-hj2D.jointAngle)*.6);
+        // //cap the min and max values
+        // if(lims.max > lims.min + 190) lims.max = lims.min + 190;
+        // if(lims.max < lims.min + 95) lims.max = lims.min + 95;
+        // arm.limits = lims;
     }
 }
