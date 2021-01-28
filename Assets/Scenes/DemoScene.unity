@@ -398,7 +398,7 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: 0.07, y: 0.15}
-  m_ConnectedAnchor: {x: 0.30999947, y: -0.09399986}
+  m_ConnectedAnchor: {x: 0.30999947, y: -0.093999505}
   m_UseMotor: 0
   m_Motor:
     m_MotorSpeed: -1000
@@ -1462,46 +1462,6 @@ Tilemap:
       serializedVersion: 2
       m_TileIndex: 11
       m_TileSpriteIndex: 11
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741825
-  - first: {x: 17, y: 1, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 0
-      m_TileSpriteIndex: 0
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741825
-  - first: {x: 18, y: 1, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 3
-      m_TileSpriteIndex: 3
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741825
-  - first: {x: 19, y: 1, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 4
-      m_TileSpriteIndex: 4
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741825
-  - first: {x: 20, y: 1, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 5
-      m_TileSpriteIndex: 5
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -3349,17 +3309,17 @@ Tilemap:
       m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
   m_TileAssetArray:
-  - m_RefCount: 17
+  - m_RefCount: 16
     m_Data: {fileID: 11400000, guid: 7d3ebec9e051c3a478cd35caef4a039b, type: 2}
   - m_RefCount: 9
     m_Data: {fileID: 11400000, guid: 6633ec306ed7fe34eabf7c50becf2ab8, type: 2}
   - m_RefCount: 9
     m_Data: {fileID: 11400000, guid: ed7e55966fbc2634a927f3bfe6736bac, type: 2}
-  - m_RefCount: 17
+  - m_RefCount: 16
     m_Data: {fileID: 11400000, guid: 421ea3a12afe6d2479d8ca2cc993a5a1, type: 2}
-  - m_RefCount: 18
+  - m_RefCount: 17
     m_Data: {fileID: 11400000, guid: 36c52e2e702f3ff4dbb0ed38e06e43cb, type: 2}
-  - m_RefCount: 21
+  - m_RefCount: 20
     m_Data: {fileID: 11400000, guid: 97c23ba2dd1b54f4aa40b4218bfbb8b9, type: 2}
   - m_RefCount: 11
     m_Data: {fileID: 11400000, guid: 6a36020965a58f246854d8adc7714eb9, type: 2}
@@ -3380,17 +3340,17 @@ Tilemap:
   - m_RefCount: 64
     m_Data: {fileID: 11400000, guid: a7f097fef56621e45a8722050fd18c01, type: 2}
   m_TileSpriteArray:
-  - m_RefCount: 17
+  - m_RefCount: 16
     m_Data: {fileID: 21300000, guid: a2ad6f6ba1345e544a054e9e7a78f5e5, type: 3}
   - m_RefCount: 9
     m_Data: {fileID: 21300000, guid: d72caf52f22ec7d47ae04392fcf7227e, type: 3}
   - m_RefCount: 9
     m_Data: {fileID: 21300000, guid: 000207c915a540846881f1fd39478908, type: 3}
-  - m_RefCount: 17
+  - m_RefCount: 16
     m_Data: {fileID: 21300000, guid: a2019109c41112544ab6ddebf4293445, type: 3}
-  - m_RefCount: 18
+  - m_RefCount: 17
     m_Data: {fileID: 21300000, guid: 4802eb907cb033d4cbc3e33c64afc176, type: 3}
-  - m_RefCount: 21
+  - m_RefCount: 20
     m_Data: {fileID: 21300000, guid: b1b37f14ab613694fa87291e644b7f64, type: 3}
   - m_RefCount: 5
     m_Data: {fileID: 21300000, guid: 47282243012e423448251fac52a24ab4, type: 3}
@@ -3411,7 +3371,7 @@ Tilemap:
   - m_RefCount: 64
     m_Data: {fileID: 21300000, guid: d3400777b23b54143a1b71d432f5791c, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 245
+  - m_RefCount: 241
     m_Data:
       e00: 1
       e01: 0
@@ -3430,7 +3390,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 245
+  - m_RefCount: 241
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -4069,7 +4029,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 23.58, y: 3.46, z: -10}
+  m_LocalPosition: {x: 19.720001, y: -1.8100004, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -6770,7 +6730,7 @@ HingeJoint2D:
   m_UseMotor: 1
   m_Motor:
     m_MotorSpeed: 100
-    m_MaximumMotorForce: 5
+    m_MaximumMotorForce: 14
   m_UseLimits: 1
   m_AngleLimits:
     m_LowerAngle: -90
@@ -7352,7 +7312,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1667904162}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 26.72, y: 4.59, z: 0}
+  m_LocalPosition: {x: 22.86, y: -0.68, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 122170929}
@@ -7536,7 +7496,7 @@ MonoBehaviour:
   airFricThresh: 100
   weakMod: 0.02
   calfRotMod: 0
-  footRotMod: 0.2
+  footRotMod: 0.02
   toeFlickMod: 30
   hipExtMod: 1.5
 --- !u!114 &1667904169
@@ -8189,7 +8149,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1753546434}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 23.58, y: 3.46, z: -10}
+  m_LocalPosition: {x: 19.720001, y: -1.8100004, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1141270652}
@@ -8293,7 +8253,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1940716881}
   m_LocalRotation: {x: -0, y: -0, z: -0.0000076144925, w: 1}
-  m_LocalPosition: {x: -0.4679, y: 0.062000513, z: 0}
+  m_LocalPosition: {x: -0.328, y: 0.042, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1667904163}
@@ -8314,7 +8274,7 @@ FixedJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: 0, y: 0}
-  m_ConnectedAnchor: {x: -0.46789932, y: 0.062000275}
+  m_ConnectedAnchor: {x: -0.32799911, y: 0.04200077}
   m_DampingRatio: 1
   m_Frequency: 0
 --- !u!50 &1940716884
@@ -8389,7 +8349,7 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: -0.18, y: 0.13}
-  m_ConnectedAnchor: {x: -0.031000137, y: -0.11350012}
+  m_ConnectedAnchor: {x: -0.031000137, y: -0.113500595}
   m_UseMotor: 1
   m_Motor:
     m_MotorSpeed: 100
@@ -8527,7 +8487,7 @@ FrictionJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: -0.18, y: 0.13}
-  m_ConnectedAnchor: {x: -0.031000137, y: -0.11350012}
+  m_ConnectedAnchor: {x: -0.031000137, y: -0.113500595}
   m_MaxForce: 0
   m_MaxTorque: 1
 --- !u!114 &1969664609
@@ -8752,7 +8712,7 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: 0.31, y: 0.09}
-  m_ConnectedAnchor: {x: 0.36300087, y: 0.029999971}
+  m_ConnectedAnchor: {x: 0.36300087, y: 0.030000448}
   m_UseMotor: 1
   m_Motor:
     m_MotorSpeed: -800
