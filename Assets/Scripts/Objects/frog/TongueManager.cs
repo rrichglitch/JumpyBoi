@@ -59,7 +59,13 @@ public class TongueManager : MonoBehaviour
             last.GetComponent<HingeJoint2D>().connectedAnchor = conAnc;
             last.GetComponent<DistanceJoint2D>().connectedAnchor = conAnc;
         }
-        if(tongueHid.Count < 10) last.GetComponent<Sticky>().breakForce += tip.GetComponent<Sticky>().breakForce/(tongueHid.Count+1);
+        if(tongueHid.Count < 10){
+            Sticky ls = last.GetComponent<Sticky>();
+            Sticky ts = tip.GetComponent<Sticky>();
+            ls.force += ts.force/(tongueHid.Count+1);
+            ls.torque += ts.torque/(tongueHid.Count+1);
+            ls.freq += ts.freq/(tongueHid.Count+1);
+        }
     }
 
     public void OnTong(){OnTongue(new InputAction.CallbackContext());}
@@ -82,7 +88,7 @@ public class TongueManager : MonoBehaviour
                     rayStart.x += rayOffset;
                     rayStart = tip.TransformPoint(rayStart);
                     RaycastHit2D rCH2D= Physics2D.Raycast(rayStart, tip.TransformDirection(Vector2.right), speed*.01F);
-                    if(rCH2D) vel.x += speed * (.1F + rCH2D.fraction);
+                    if(rCH2D) vel.x += speed * (.05F + rCH2D.fraction);
                     else 
                     vel.x += speed;
 
@@ -255,7 +261,7 @@ public class TongueManager : MonoBehaviour
             last.GetComponent<Rigidbody2D>().AddForce(force*mod);
             someStuck = false;
             foreach(Sticky s in GetComponentsInChildren<Sticky>(true))
-                if(s.stucks.Count > 0){
+                if(s.stucksCount > 0){
                     someStuck = true;
                     break;
                 }

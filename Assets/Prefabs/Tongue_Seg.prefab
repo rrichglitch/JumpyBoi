@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 7830923818898104552}
   - component: {fileID: 5571163215421702122}
   - component: {fileID: -5347540102721532824}
+  - component: {fileID: -117896138993710886}
   m_Layer: 8
   m_Name: Tongue_Seg
   m_TagString: Untagged
@@ -137,7 +138,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.32, y: 0.32}
+  m_Size: {x: 0.3, y: 0.3}
   m_EdgeRadius: 0
 --- !u!58 &1086879719325014063
 CircleCollider2D:
@@ -154,7 +155,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.16
+  m_Radius: 0.15
 --- !u!233 &217997869038035170
 HingeJoint2D:
   m_ObjectHideFlags: 0
@@ -236,9 +237,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 058520c1e7e0dee41bf0ad99fc661d07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  breakForce: 300
-  free: []
+  force: 1
+  torque: 1
+  freq: 1
   defVal: 1
+  triggered: 0
 --- !u!114 &7830923818898104552
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -309,3 +312,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b45486d7c0305f4cbb550eb2f684849, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!61 &-117896138993710886
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 208563332879416121}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.32, y: 0.32}
+    newSize: {x: 0.32, y: 0.32}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 0.36, y: 0.36}
+  m_EdgeRadius: 0

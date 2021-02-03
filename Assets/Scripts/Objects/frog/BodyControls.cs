@@ -11,9 +11,9 @@ public class BodyControls : MonoBehaviour
     [SerializeField] private float baseStart = 240; //set this to what the threshold should be where the hand curls up
     [SerializeField] private float handPropMod = 5; //how much stronger should the hand be when trying to get off the head or reach out
     [SerializeField] private float revMod = .5F; //set this to how strong motors should be when not actively used
-    [SerializeField] private float airFricThresh = 10; //set this to the threshhold at which air friction kicks in to weaken motor strength
+    // [SerializeField] private float airFricThresh = 10; //set this to the threshhold at which air friction kicks in to weaken motor strength
     [SerializeField] private float weakMod = .1F; //set this to how weak motors will be when the body is at high velocity
-    [SerializeField] private float calfRotMod = 1; //adjust this so that the pointing calf rotation feels good
+    // [SerializeField] private float calfRotMod = 1; //adjust this so that the pointing calf rotation feels good
     [SerializeField] private float footRotMod = 1; //adjust this so that the pointing foot rotation feels good
     [SerializeField] private float toeFlickMod = 5; //adjust this so that the pointing foot rotation feels good
     [SerializeField] private float hipExtMod = 1.5F; //adjust this so that the pointing foot rotation feels good
@@ -116,7 +116,7 @@ public class BodyControls : MonoBehaviour
         }
 
         //run if the the frogs head is too low
-        Debug.Log(transform.localEulerAngles.z);
+        // Debug.Log(transform.localEulerAngles.z);
         if(transform.localEulerAngles.z > lowAng && transform.localEulerAngles.z < upAng){
             handMotor.maxMotorTorque = handTorq * handPropMod;
             handMotor.motorSpeed = -handSpeed;

@@ -4,47 +4,69 @@ using UnityEngine;
 
 public class Sticky : MonoBehaviour
 {
-    public float breakForce;
+    public float force;
+    public float torque;
+    public float freq;
 
     private bool stickOn;
-    public List<Joint2D> stucks {get; private set;} = new List<Joint2D>();
-    public List<Rigidbody2D> free;
+    private Dictionary<Collider2D, Joint2D[]> stucks = new Dictionary<Collider2D, Joint2D[]>();
+    public int stucksCount {get{return stucks.Count;}}
+    private StickFree sf;
     [SerializeField] private bool defVal = true;
+    [SerializeField] private bool triggered = false;
     void Start(){
-        // if(free == null && tongue) free = transform.parent.parent.GetComponent<StickFree>().free;
         stickOn = defVal;
+        sf = transform.GetComponent<StickFree>();
+        if(sf == null && transform.parent != null) sf = transform.parent.GetComponent<StickFree>();
     }
+    public void defStick(bool set = true){ if(set) stickOn = defVal; else stickOn = set; }
 
-    //make a new fixed joint and add it to the list so it can be managed later
-    void OnCollisionEnter2D(Collision2D oColid){
+    void OnTriggerEnter2D(Collider2D oCollid){ if(triggered) stick(oCollid); }
+    void OnTriggerExit2D(Collider2D oCollid){ unStick(oCollid); }
+    void OnCollisionEnter2D(Collision2D collis){ if(!triggered) stick(collis.collider); }
+    // void OnCollisionExit2D(Collision2D collis){ if(!triggered) unStick(collis.collider); }
+
+    public void stick(Collider2D oCollid){
         if(stickOn){
-            if(!free.Contains(oColid.rigidbody)){
-                FixedJoint2D nj;
-                nj = gameObject.AddComponent<FixedJoint2D>() as FixedJoint2D;
-                nj.connectedBody = oColid.rigidbody;
-                nj.breakForce = breakForce;
-                nj.breakTorque = breakForce;
-                stucks.Add(nj);
+            if(sf == null || !sf.free.Contains(oCollid)){
+                if(stucks.ContainsKey(oCollid)) unStick(oCollid);
+                FrictionJoint2D fj = gameObject.AddComponent<FrictionJoint2D>();
+                fj.enableCollision = true; //this line is needed so that On(Trigger/Collision)Stay works properly
+                fj.connectedBody = oCollid.attachedRigidbody;
+                fj.autoConfigureConnectedAnchor = true;
+                fj.maxForce = force;
+                fj.maxTorque = torque;
+                SpringJoint2D sj = null;
+                if(!triggered){
+                    sj = gameObject.AddComponent<SpringJoint2D>();
+                    sj.enableCollision = true; //this line is needed so that On(Trigger/Collision)Stay works properly
+                    sj.connectedBody = oCollid.attachedRigidbody;
+                    sj.autoConfigureConnectedAnchor = true;
+                    sj.dampingRatio = 1;
+                    sj.frequency = freq;
+                }
+                stucks.Add(oCollid, new Joint2D[]{fj, sj});
             }
         }
     }
 
-    //remove a joint from the list of owned joints it breaks
-    void OnJointBreak2D(Joint2D broke){
-        int ind = stucks.IndexOf(broke);
-        if(ind != -1)
-            stucks.RemoveAt(ind);
+    public void unStick(Collider2D oCollid){
+        // Debug.Log("unstick "+ oCollid.name);
+        if(stucks.ContainsKey(oCollid)){
+            Destroy(stucks[oCollid][0]);
+            Destroy(stucks[oCollid][1]);
+            stucks.Remove(oCollid);
+        }
     }
 
     //a simple method to run through and clear all the joints this script has made
     public void clearSticks(){
-        // foreach(Joint2D j in stucks)
-        //     Destroy(j);
-        // stucks.Clear();
-        for(int i = stucks.Count-1; i >=0; i--){
-            Destroy(stucks[i]);
-            stucks.RemoveAt(i);
-        }
+        Collider2D[] saveKeys = new Collider2D[stucks.Count];
+        stucks.Keys.CopyTo(saveKeys,0);
+        foreach(Collider2D collid in saveKeys)
+            unStick(collid);
     }
-    public void defStick(bool set = true){if(set) stickOn = defVal; else stickOn = set;}
+
+    // void OnTriggerStay2D(){ Debug.Log("stay"); }
+    // void Update(){Debug.Log(stucks.Count);}
 }
