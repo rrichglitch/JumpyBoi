@@ -92,6 +92,8 @@ public class TongueManager : MonoBehaviour
                     else 
                     vel.x += speed;
 
+                    //try to kill weird rotation of tip
+                    tip.GetComponent<Rigidbody2D>().angularVelocity = 0;
                     // tip.GetComponent<Rigidbody2D>().AddRelativeForce(new Vector2(speed*.45F,0), ForceMode2D.Impulse);
                     tip.GetComponent<Rigidbody2D>().velocity = tip.TransformDirection(vel);
                     // tip.GetComponent<Info>().flags.Add("ignoreBounce");
