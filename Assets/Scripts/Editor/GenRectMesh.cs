@@ -6,25 +6,15 @@ using UnityEditor;
 [ExecuteInEditMode]
 public class GenRectMesh : EditorWindow
 {
-    private Texture tex;
-    private string saveName = "_";
-    private int smallBoxes = 3; // the number of boxes across the short side of the texture
-    private float textureScale = .1F;
+    [SerializeField] private Texture tex;
+    [SerializeField] private string saveName = "_";
+    [SerializeField] private int smallBoxes = 3; // the number of boxes across the short side of the texture
+    [SerializeField] private float textureScale = .1F;
     private string savePath {get{return "Assets/Generated/Meshes/"+saveName+".asset";}}
     public Mesh mesh;
-    private bool ht;
-    private List<(int, int, int)> sharedVerts; //a list of indexes of the vertebrae with the points they share on the perimeter
-    private int vertebrae;
     Vector3[] vertices;
     Vector2[] uv;
     int[] triangles;
-
-    // private static EditorWindow window;
-    
-    // void Awake(){
-    //     if (Application.isEditor && !Application.isPlaying)
-    //         GenerateMesh();
-    // }
 
     [MenuItem("Window/GenRectMesh")]
     public static void ShowWindow(){
@@ -32,7 +22,7 @@ public class GenRectMesh : EditorWindow
     }
 
     void OnGUI(){
-        tex = (Texture)EditorGUILayout.ObjectField("Texture", tex, typeof(Texture), true);
+        tex = (Texture)EditorGUILayout.ObjectField("texture", tex, typeof(Texture), true);
         saveName = EditorGUILayout.TextField("saveName", saveName);
         smallBoxes = EditorGUILayout.IntField("smallBoxes", smallBoxes);
         textureScale = EditorGUILayout.FloatField("textureScale", textureScale);
@@ -48,6 +38,10 @@ public class GenRectMesh : EditorWindow
     [ContextMenu("Generate Mesh")]
     void GenerateMesh(){
         if(tex != null){
+            
+            bool ht;
+            List<(int, int, int)> sharedVerts; //a list of indexes of the vertebrae with the points they share on the perimeter
+            int vertebrae;
             //all field thats arent interactabnle should be initialize here
             //so that different runs dont interfere with eachother
             mesh = new Mesh();
@@ -107,6 +101,92 @@ public class GenRectMesh : EditorWindow
             uv = new Vector2[len];
             triangles = new int[3*(vertices.Length-vertebrae+((vertebrae-1)*2))];
 
+            
+
+            //method used to vet and fill the sharedVerts list
+            void shareCheck(int ind){
+                // Debug.Log("checked "+ind);
+                //find the closest vertebrae
+                int next;
+                if(ind >= vertices.Length-1) next = vertebrae;
+                else next = ind+1;
+                int closest=0;
+                int sClosest=1;
+                float bcDist = Vector2.Distance(vertices[closest], vertices[ind]);
+                float bscDist = Vector2.Distance(vertices[sClosest], vertices[ind]);
+                
+                //closest should prefer leaning backwards to help with the triangle generation
+                if(bscDist == bcDist){
+                    if(Vector2.Distance(vertices[sClosest], vertices[ind-1]) < Vector2.Distance(vertices[closest], vertices[ind-1])){
+                        // Debug.Log("leaned back!");
+                        int save = closest;
+                        closest = sClosest;
+                        sClosest = save;
+                    }
+                }
+                //sort which of the beginner 2 is correct
+                else if(bscDist < bcDist){
+                    int save = closest;
+                    closest = sClosest;
+                    sClosest = save;
+                }
+                
+                // if(closest > 1) Debug.Log(closest+"after initial closing");
+
+                //find vertebrae closer than the beginner 2
+                for(int i = 2; i<vertebrae; i++){
+                    // Debug.Log("more than 2 vertebrae");
+                    if(Vector2.Distance(vertices[i], vertices[ind]) < Vector2.Distance(vertices[sClosest], vertices[ind])){
+                        sClosest = i;
+                        //swap the closest and second closest if appropriate
+                        if( Vector2.Distance(vertices[sClosest], vertices[ind]) < Vector2.Distance(vertices[closest], vertices[ind])
+                        || Vector2.Distance(vertices[sClosest], vertices[ind-1]) < Vector2.Distance(vertices[closest], vertices[ind-1])){
+                            int save = closest;
+                            closest = sClosest;
+                            sClosest = save;
+                        }
+                    }
+                }
+                // if(closest > 1) Debug.Log(closest+" after close changes");
+
+                Vector2 mid = (vertices[closest] + vertices[sClosest])/2;
+                float mDist = Vector2.Distance(mid, vertices[ind]);
+                float lDist = Vector2.Distance(mid, vertices[ind-1]);
+                float nDist = Vector2.Distance(mid, vertices[next]);
+                // float cDist = Vector2.Distance(vertices[closest], vertices[ind]);
+                // float scDist = Vector2.Distance(vertices[sClosest], vertices[ind]);
+                // Debug.Log(ind+": "+vertices[ind]);
+                // Debug.Log(mDist);
+
+                //if the closest is not the same
+                //if this vertex is closer to the middle than its neighboring verteces then add this as a point shared with the vertebrae
+                (int,int,int) lShared;
+                if(mDist <= lDist && mDist <= nDist){
+                    // Debug.Log("can share: "+ind);
+                    //check to see if the last neighboring vertex has covered sharing with the spine already
+                    if(sharedVerts.Count > 0){
+                        lShared = sharedVerts[sharedVerts.Count-1];
+                        if( lShared.Item2 == ind-1
+                        && (lShared.Item1 == closest || lShared.Item1 == sClosest)
+                        && (lShared.Item3 == closest || lShared.Item3 == sClosest)){
+                            // Debug.Log(shared.Item2+" -> "+ind);
+                            // sharedVerts[sharedVerts.Count-1] = (closest, ind, sClosest);
+                            return;
+                        }
+                    }
+                    // if(lDist == nDist)
+                    bcDist = Vector2.Distance(vertices[closest], vertices[ind]);
+                    bscDist = Vector2.Distance(vertices[sClosest], vertices[ind]);
+
+                    // Debug.Log(vertices[ind]);
+                    // Debug.Log(lDist+" > "+mDist+" < "+nDist);
+                    // Debug.Log(bcDist+" < "+bscDist);
+                    sharedVerts.Add((closest, ind, sClosest));
+                }
+            }
+
+
+
             int ind = 0;
             //make the "spine" or inner verticies
             float mid = texSD/2;
@@ -146,7 +226,7 @@ public class GenRectMesh : EditorWindow
                         shareCheck(ind-1);
                     ind++;
                 }
-                shareCheck(ind-1);
+                if(vertebrae > 1) shareCheck(ind-1);
             }
             else{
                 //top: L2R
@@ -168,12 +248,12 @@ public class GenRectMesh : EditorWindow
                         shareCheck(ind-1);
                     ind++;
                 }
+                if(vertebrae > 1) shareCheck(ind-1);
                 //left: B2T
                 for(int h = 1; h<hBoxes; h++){
                     vertices[ind] = new Vector3(0, h*boxH);
                     ind++;
                 }
-                shareCheck(ind-1);
             }
 
             //clone the verticies on to the uv
@@ -271,87 +351,5 @@ public class GenRectMesh : EditorWindow
             AssetDatabase.SaveAssets();
         }
         else Debug.Log("no texture assigned!");
-    }
-
-    //method used to vet and fill the sharedVerts list
-    void shareCheck(int ind){
-        // Debug.Log("checked "+ind);
-        //find the closest vertebrae
-        int next;
-        if(ind >= vertices.Length-1) next = vertebrae;
-        else next = ind+1;
-        int closest=0;
-        int sClosest=1;
-        float bcDist = Vector2.Distance(vertices[closest], vertices[ind]);
-        float bscDist = Vector2.Distance(vertices[sClosest], vertices[ind]);
-        
-        //closest should prefer leaning backwards to help with the triangle generation
-        if(bscDist == bcDist){
-            if(Vector2.Distance(vertices[sClosest], vertices[ind-1]) < Vector2.Distance(vertices[closest], vertices[ind-1])){
-                // Debug.Log("leaned back!");
-                int save = closest;
-                closest = sClosest;
-                sClosest = save;
-            }
-        }
-        //sort which of the beginner 2 is correct
-        else if(bscDist < bcDist){
-            int save = closest;
-            closest = sClosest;
-            sClosest = save;
-        }
-        
-        // if(closest > 1) Debug.Log(closest+"after initial closing");
-
-        //find vertebrae closer than the beginner 2
-        for(int i = 2; i<vertebrae; i++){
-            // Debug.Log("more than 2 vertebrae");
-            if(Vector2.Distance(vertices[i], vertices[ind]) < Vector2.Distance(vertices[sClosest], vertices[ind])){
-                sClosest = i;
-                //swap the closest and second closest if appropriate
-                if( Vector2.Distance(vertices[sClosest], vertices[ind]) < Vector2.Distance(vertices[closest], vertices[ind])
-                || Vector2.Distance(vertices[sClosest], vertices[ind-1]) < Vector2.Distance(vertices[closest], vertices[ind-1])){
-                    int save = closest;
-                    closest = sClosest;
-                    sClosest = save;
-                }
-            }
-        }
-        // if(closest > 1) Debug.Log(closest+" after close changes");
-
-        Vector2 mid = (vertices[closest] + vertices[sClosest])/2;
-        float mDist = Vector2.Distance(mid, vertices[ind]);
-        float lDist = Vector2.Distance(mid, vertices[ind-1]);
-        float nDist = Vector2.Distance(mid, vertices[next]);
-        // float cDist = Vector2.Distance(vertices[closest], vertices[ind]);
-        // float scDist = Vector2.Distance(vertices[sClosest], vertices[ind]);
-        // Debug.Log(ind+": "+vertices[ind]);
-        // Debug.Log(mDist);
-
-        //if the closest is not the same
-        //if this vertex is closer to the middle than its neighboring verteces then add this as a point shared with the vertebrae
-        (int,int,int) lShared;
-        if(mDist <= lDist && mDist <= nDist){
-            // Debug.Log("can share: "+ind);
-            //check to see if the last neighboring vertex has covered sharing with the spine already
-            if(sharedVerts.Count > 0){
-                lShared = sharedVerts[sharedVerts.Count-1];
-                if( lShared.Item2 == ind-1
-                && (lShared.Item1 == closest || lShared.Item1 == sClosest)
-                && (lShared.Item3 == closest || lShared.Item3 == sClosest)){
-                    // Debug.Log(shared.Item2+" -> "+ind);
-                    // sharedVerts[sharedVerts.Count-1] = (closest, ind, sClosest);
-                    return;
-                }
-            }
-            // if(lDist == nDist)
-            bcDist = Vector2.Distance(vertices[closest], vertices[ind]);
-            bscDist = Vector2.Distance(vertices[sClosest], vertices[ind]);
-
-            // Debug.Log(vertices[ind]);
-            // Debug.Log(lDist+" > "+mDist+" < "+nDist);
-            // Debug.Log(bcDist+" < "+bscDist);
-            sharedVerts.Add((closest, ind, sClosest));
-        }
     }
 }

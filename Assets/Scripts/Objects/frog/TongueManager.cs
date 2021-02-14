@@ -22,6 +22,7 @@ public class TongueManager : MonoBehaviour
     private float width;
     private Vector2 startPos;
     private Transform tip;
+    private HingeJoint2D jawHinge;
     private bool peaked = false;
     private bool tLit = false;
     private Color tCol;
@@ -36,6 +37,7 @@ public class TongueManager : MonoBehaviour
     void Start(){
         width = prefab.GetComponent<SpriteRenderer>().bounds.size.x;
         startPos = transform.localPosition;
+        jawHinge = transform.parent.Find("Jaw").GetComponent<HingeJoint2D>();
         tip = transform.GetChild(0);
         tip.GetComponent<Sticky>().defStick(false);
         headDists = transform.parent.GetComponents<DistanceJoint2D>();
@@ -80,6 +82,11 @@ public class TongueManager : MonoBehaviour
                 if(fj.enabled){
                     fj.enabled = false;
 
+                    //open the mouth
+                    JointMotor2D mtr = jawHinge.motor;
+                    mtr.motorSpeed *= -1;
+                    jawHinge.motor = mtr;
+
                     // the actual change in position from velocity is velocity/50 every physics step
                     Vector2 vel = tip.InverseTransformDirection(tip.GetComponent<Rigidbody2D>().velocity);
 
@@ -97,7 +104,7 @@ public class TongueManager : MonoBehaviour
                     // tip.GetComponent<Rigidbody2D>().AddRelativeForce(new Vector2(speed*.45F,0), ForceMode2D.Impulse);
                     tip.GetComponent<Rigidbody2D>().velocity = tip.TransformDirection(vel);
                     // tip.GetComponent<Info>().flags.Add("ignoreBounce");
-                    transform.parent.GetComponent<Rigidbody2D>().AddForce(tip.TransformDirection(new Vector2(speed*-.1F,0)), ForceMode2D.Impulse);
+                    transform.parent.GetComponent<Rigidbody2D>().AddForce(tip.TransformDirection(new Vector2(speed*-.3F,0)), ForceMode2D.Impulse);
                     tip.GetComponent<Sticky>().defStick();
                 }
                 else{
@@ -316,6 +323,11 @@ public class TongueManager : MonoBehaviour
         peaked = false;
         frFrames = -1;
         tLitToggle();
+
+        //close the mouth
+        JointMotor2D mtr = jawHinge.motor;
+        mtr.motorSpeed *= -1;
+        jawHinge.motor = mtr;
     }
     public bool mRadiate(object[] args){
         ((Effect)args[2]).doIt((GameObject)args[0]);

@@ -44,5 +44,24 @@ public class Commons : Singleton<Commons>
         }
         return toRet;
     }
+
+    //get the total bounds of an object and its children in world space
+    //super useful for scaling purposes
+    //pass a second parameter of true to base the bounds on colliders instead of renderers
+    static public Bounds GetMaxBounds(GameObject g, bool colliderBased = false){
+        Bounds b = new Bounds(g.transform.position, Vector3.zero);
+        Bounds temp;
+        if(colliderBased)
+            foreach (Collider2D c in g.GetComponentsInChildren<Collider2D>()){
+                temp = new Bounds(c.transform.TransformPoint(c.bounds.center), c.bounds.size);
+                b.Encapsulate(temp);
+            }
+        else
+            foreach (Renderer r in g.GetComponentsInChildren<Renderer>()){
+                temp = new Bounds(r.transform.TransformPoint(r.bounds.center), r.bounds.size);
+                b.Encapsulate(temp);
+            }
+        return b;
+    }
 }
 // public interface Listener{}
