@@ -4,29 +4,34 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class NGenMeshColliders : MonoBehaviour
+[ExecuteInEditMode]
+public class Soft2DSim : MonoBehaviour
 {
     [SerializeField] private Sprite sprite;
     [SerializeField] private Mesh mesh;
     [SerializeField] private Material mat;
-    [SerializeField] private string Name = "_";
+    // [SerializeField] private string Name = "_";
+    [SerializeField] [Range(2,6)] private int consideredIn = 4;
     [SerializeField] private bool internalFriction = false;
-    [SerializeField] private float frictionStrength = 1;
-    [SerializeField] private float partMass = 1;
-    [SerializeField] private float springStrength = 3;
-    [SerializeField] private float bounceDampening = .9F;
+    [SerializeField] [MinAttribute(0)] private float frictionStrength = 1;
+    [SerializeField] [MinAttribute(0)] private float partMass = 1;
+    [SerializeField] [MinAttribute(0)] private float springStrength = 3;
+    [SerializeField] [Range(0,1)] private float bounceDampening = .9F;
     [SerializeField] private bool solidSpine = true;
-    [SerializeField] private float vertebraeMass = 1;
-    [SerializeField] private float spineStrength = 5;
-    [SerializeField] private float spineDampening = .9F;
-    [SerializeField] private int consideredIn = 4;
+    [SerializeField] [MinAttribute(0)] private float vertebraeMass = 1;
+    [SerializeField] [MinAttribute(0)] private float spineStrength = 5;
+    [SerializeField] [Range(0,1)] private float spineDampening = .9F;
     [SerializeField] private bool useSquareColliders = true;
-    [SerializeField] private float skinThickness = .3F;
+    [SerializeField] [MinAttribute(0)] private float skinThickness = .3F;
+    private float squarEdgeRad{get{return skinThickness/4;}}
     [SerializeField] private PhysicsMaterial2D physMat;
+    [SerializeField] private bool updateVariablesLive; //enable this when fiddling with different values on joints and such but disable for actual play
+    [SerializeField, HideInInspector] private bool finishedConstruction = false;
+    [SerializeField, HideInInspector] private GameObject[] children;
+    [SerializeField, HideInInspector] private List<int> innerVerts;
     
-    [ContextMenu("Generate Colliders")]
+    [ContextMenu("Generate Parts")]
     void GenerateColliders(){
-        float squarEdgeRad = skinThickness/4;
         if(mesh is null && sprite is null){
             Debug.Log("mesh is null!");
         }
@@ -80,9 +85,12 @@ public class NGenMeshColliders : MonoBehaviour
                 }
                 return sorted;
             }
-            List<int> innerVerts = getInners();
+            innerVerts = getInners();
 
-            GameObject container = new GameObject(Name, typeof(Rigidbody2D));
+            // GameObject container = new GameObject(Name, typeof(Rigidbody2D));
+            GameObject container = gameObject;
+            Rigidbody2D contBody = container.GetComponent<Rigidbody2D>();
+            if(contBody == null) contBody = container.AddComponent<Rigidbody2D>();
             GameObject picture;
             Bounds rederBounds;
 
@@ -120,7 +128,7 @@ public class NGenMeshColliders : MonoBehaviour
             GameObject scaler = new GameObject("parts");
             scaler.transform.parent = picture.transform;
 
-            GameObject[] children = new GameObject[vertices.Length];
+            children = new GameObject[vertices.Length];
             GameObject curChild;
             Collider2D curCollid;
             AnchoredJoint2D curJoint;
@@ -145,7 +153,7 @@ public class NGenMeshColliders : MonoBehaviour
                     //configure joints
                     if(i==0){
                         curJoint = curChild.AddComponent<FixedJoint2D>();
-                        curJoint.connectedBody = container.GetComponent<Rigidbody2D>();
+                        curJoint.connectedBody = contBody;
                     }
                     else{
                         if(solidSpine)
@@ -165,19 +173,7 @@ public class NGenMeshColliders : MonoBehaviour
 
             //a small(but really hard to think about) helper function to get the index of the skin vertex the correct count away
             int neighborSkin(int ind, int skinDist){
-                int dir = skinDist/Mathf.Abs(skinDist);
-                int ret = ind;
-                for(int skinCount = 0; skinCount != skinDist && Mathf.Abs(skinCount) < vertices.Length-1; skinCount += dir){
-                    ret = (ret + dir)%vertices.Length;
-                    if(ret + dir < 0)
-                        ret = vertices.Length+dir;
-                    while(innerVerts.Contains(ret) && Mathf.Abs(ret) < vertices.Length){
-                        ret = (ret + dir)%vertices.Length;
-                        if(ret + dir < 0)
-                            ret = vertices.Length+dir;
-                    }
-                }
-                return ret;
+                return GetValidIndex(vertices.Length, ind, skinDist, innerVerts);
             }
 
             int start = neighborSkin(vertices.Length-1,1);
@@ -343,13 +339,33 @@ public class NGenMeshColliders : MonoBehaviour
             picture.transform.localPosition = new Vector3(0,0);
             scaler.transform.localPosition = new Vector3(0,0);
             // scaler.transform.position = picture.transform.TransformPoint(rederBounds.center) - GetMaxBounds(scaler, true).center;
+
+            finishedConstruction = true;
         }
+    }
+
+    //a method to get the an element the appropriate count away from an index while excluding certain indices
+    //pretty hard to think about imo
+    int GetValidIndex(int totalLength, int startInd, int endDist, List<int> exlusions){
+        int dir = endDist/Mathf.Abs(endDist);
+        int ret = startInd;
+        for(int skinCount = 0; skinCount != endDist && Mathf.Abs(skinCount) < totalLength-1; skinCount += dir){
+            ret = (ret + dir)%totalLength;
+            if(ret + dir < 0)
+                ret = totalLength+dir;
+            while(exlusions.Contains(ret) && Mathf.Abs(ret) < totalLength){
+                ret = (ret + dir)%totalLength;
+                if(ret + dir < 0)
+                    ret = totalLength+dir;
+            }
+        }
+        return ret;
     }
 
     //get the total bounds of an object and its children in world space
     //super useful for scaling purposes
     //pass a second parameter of true to base the bounds on colliders instead of renderers
-    static public Bounds GetMaxBounds(GameObject g, bool colliderBased = false){
+    Bounds GetMaxBounds(GameObject g, bool colliderBased = false){
         Bounds b = new Bounds(g.transform.position, Vector3.zero);
         Bounds temp;
         if(colliderBased)
@@ -363,5 +379,71 @@ public class NGenMeshColliders : MonoBehaviour
                 b.Encapsulate(temp);
             }
         return b;
+    }
+
+    void Update(){
+        if(finishedConstruction && updateVariablesLive){
+            GetComponent<Rigidbody2D>().WakeUp();
+            Rigidbody2D bod;
+            SpringJoint2D[] springs;
+            Collider2D collid;
+            for(int a = 0; a < innerVerts.Count; a++){
+
+                bod = children[innerVerts[a]].GetComponent<Rigidbody2D>();
+                if(bod != null){
+                    bod.mass = vertebraeMass;
+                    bod.WakeUp();
+                }
+
+                springs = children[innerVerts[a]].GetComponents<SpringJoint2D>();
+                if(springs.Length > 0){
+                    springs[0].frequency = spineStrength;
+                    springs[0].dampingRatio = spineDampening;
+                }
+
+                collid = children[innerVerts[a]].GetComponent<Collider2D>();
+                if(collid != null){
+                    ((CircleCollider2D)collid).radius = skinThickness/2;
+                }
+            }
+
+            FrictionJoint2D frict;
+            for(int i = 0; i < children.Length; i++){
+
+                bod = children[i].GetComponent<Rigidbody2D>();
+                if(bod != null){
+                    bod.mass = partMass;
+                    bod.WakeUp();
+                }
+
+                springs = children[i].GetComponents<SpringJoint2D>();
+                for(int b = 0; b < springs.Length; b++){
+                    springs[b].frequency = springStrength;
+                    springs[b].dampingRatio = bounceDampening;
+                }
+
+                collid = children[i].GetComponent<Collider2D>();
+                if(collid != null){
+                    if(collid is BoxCollider2D){
+                        Vector2 dimSave = ((BoxCollider2D)collid).size;
+                        if(dimSave.x > squarEdgeRad*2 && skinThickness > squarEdgeRad*2){
+                            ((BoxCollider2D)collid).size = new Vector2(dimSave.x, skinThickness-(squarEdgeRad*2));
+                            ((BoxCollider2D)collid).edgeRadius = squarEdgeRad;
+                        }
+                        else ((BoxCollider2D)collid).size = new Vector2(dimSave.x, skinThickness);
+                    }
+                    else if(collid is CircleCollider2D){
+                        ((CircleCollider2D)collid).radius = skinThickness/2;
+                    }
+                    if(physMat != null) collid.sharedMaterial = physMat;
+                }
+
+                frict = children[i].GetComponent<FrictionJoint2D>();
+                if(frict != null){
+                    frict.maxForce = frictionStrength;
+                    frict.maxTorque = frictionStrength*2;
+                }
+            }
+        }
     }
 }

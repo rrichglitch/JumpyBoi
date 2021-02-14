@@ -63,5 +63,33 @@ public class Commons : Singleton<Commons>
             }
         return b;
     }
+
+    //a method to get the an element the appropriate count away from an index while excluding certain indices
+    //pretty hard to think about imo
+    static public int GetValidIndex(int totalLength, int startInd, int endDist){
+        int dir = endDist/Mathf.Abs(endDist);
+        int ret = startInd;
+        for(int skinCount = 0; skinCount != endDist && Mathf.Abs(skinCount) < totalLength-1; skinCount += dir){
+            ret = (ret + dir)%totalLength;
+            if(ret + dir < 0)
+                ret = totalLength+dir;
+        }
+        return ret;
+    }
+    static public int GetValidIndex(int totalLength, int startInd, int endDist, List<int> exlusions){
+        int dir = endDist/Mathf.Abs(endDist);
+        int ret = startInd;
+        for(int skinCount = 0; skinCount != endDist && Mathf.Abs(skinCount) < totalLength-1; skinCount += dir){
+            ret = (ret + dir)%totalLength;
+            if(ret + dir < 0)
+                ret = totalLength+dir;
+            while(exlusions.Contains(ret) && Mathf.Abs(ret) < totalLength){
+                ret = (ret + dir)%totalLength;
+                if(ret + dir < 0)
+                    ret = totalLength+dir;
+            }
+        }
+        return ret;
+    }
 }
 // public interface Listener{}
