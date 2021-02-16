@@ -1,12 +1,11 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//this is a small class just to help Soft2DSim stay in sync with the monobehaviours of parts it makes
+//it uses raycasts to join parts of the skin that are across from eachother
 [ExecuteInEditMode]
 public class RayJoin : MonoBehaviour
 {
-    // private bool runInEditMode = true;
     private bool setup = false;
     private bool clockwise;
     private List<int> exclude;
@@ -14,8 +13,6 @@ public class RayJoin : MonoBehaviour
     private float springStrength;
     private float bounceDampening;
     void Awake(){
-        runInEditMode = true;
-        // Debug.Log("will run in edit mode");
         Update();
     }
     public void Setup(bool _clockwise, List<int> _exclude, float _dist, float _springStrength, float _bounceDampening){
@@ -29,7 +26,7 @@ public class RayJoin : MonoBehaviour
         setup = true;
     }
 
-    //make the joints where there connection should be determined by raycast
+    //actually carry out the purpose of this class
     void Update(){
         if(setup){
             List<GameObject> siblings = new List<GameObject>();
@@ -71,7 +68,7 @@ public class RayJoin : MonoBehaviour
                         int childSpot = siblings.IndexOf(results[a].collider.gameObject);//changed to work with list
                         if(childSpot >= 0)
                             if(!exclude.Contains(childSpot)){
-                                Debug.Log(name+" points at "+results[a].collider.name);
+                                // Debug.Log(name+" points at "+results[a].collider.name);
                                 setup = false;
                                 ret = results[a].collider;
                                 results = new RaycastHit2D[10];
@@ -108,7 +105,7 @@ public class RayJoin : MonoBehaviour
             }
             beamedCollider = null;
 
-            Debug.DrawRay(transform.position, backThirdDrirect, Color.red);
+            // Debug.DrawRay(transform.position, backThirdDrirect, Color.red);
             DestroyImmediate(this);
         }
     }
