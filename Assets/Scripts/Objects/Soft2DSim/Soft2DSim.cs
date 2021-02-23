@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -11,7 +13,7 @@ public class Soft2DSim : MonoBehaviour
     public Sprite sprite;
     public Mesh mesh; //only necessary if no sprite has been set
     public Material mat; //this is material that holds the right shader and texture for the mesh assigned
-    [Range(2,6)] public int consideredIn = 4; //this is the threshhold of number of triangles a vertex must be in the be considered an inner vertex
+    [Range(3,9)] public int consideredIn = 4; //this is the threshhold of number of triangles a vertex must be in the be considered an inner vertex
     public bool solidSpine = true; //are the spine segments in a fixed place
     [MinAttribute(0)] public float vertebraeMass = 1;
     [MinAttribute(0)] public float spineStrength = 5;
@@ -21,6 +23,7 @@ public class Soft2DSim : MonoBehaviour
     [MinAttribute(0)] public float skinThickness = .3F;
     private float squarEdgeRad{get{return skinThickness/4;}}
     public PhysicsMaterial2D physMat; //set this should the skin use a speciific physics material
+    public bool impenetrable = true; //if true the skin uses distance joints to stay together otherwise it uses maxed spring joints. toggle if theres jitter
     [MinAttribute(0)] public float partMass = 1; //the mass of the skin segments
     [MinAttribute(0)] public float springStrength = 3; //the strength of the springs holding the  skin in place
     [Range(0,1)] public float bounceDampening = .9F; //how un-bouncy is the skin
@@ -36,6 +39,7 @@ public class Soft2DSim : MonoBehaviour
         if(mesh is null && sprite is null)
             Debug.Log("no mesh has been assigned");
         else if(transform.Find("parts") == null){
+            Debug.Log("generating parts...");
             int[] triangles;
             Vector2 picDims;
 
@@ -64,6 +68,7 @@ public class Soft2DSim : MonoBehaviour
         //set up this gameobject to use a rigidbody and display the appropriate texture
         #region mainObj setup
             GameObject mainObj = gameObject;
+            // mainObj.transform.localEulerAngles = Vector3.zero;
 
             //ensure this game object has all the necessary components
             //ensure a rigidbody
@@ -115,6 +120,8 @@ public class Soft2DSim : MonoBehaviour
             //make the part scaler to use later
             GameObject scaler = new GameObject("parts");
             scaler.transform.parent = mainObj.transform;
+            scaler.transform.localPosition = Vector3.zero;
+            scaler.transform.localEulerAngles = Vector3.zero;
 
 
         #region create parts
@@ -163,27 +170,49 @@ public class Soft2DSim : MonoBehaviour
                 ((CircleCollider2D)curCollid).radius = skinThickness/2;
 
                 //configure joints
-                if(i==0){
+                if(solidSpine){
                     curJoint = curChild.AddComponent<FixedJoint2D>();
-                    curJoint.connectedBody = contBody;
                 }
                 else{
-                    if(solidSpine)
-                        curJoint = curChild.AddComponent<FixedJoint2D>();
-                    else{
-                        curJoint = curChild.AddComponent<SpringJoint2D>();
-                        ((SpringJoint2D)curJoint).dampingRatio = spineDampening;
-                        ((SpringJoint2D)curJoint).frequency = spineStrength*4;
-                    }
-                    curJoint.connectedBody = children[innerVerts[i-1]].GetComponent<Rigidbody2D>();
+                    curJoint = children[innerVerts[i]].AddComponent<SpringJoint2D>();
+                    ((SpringJoint2D)curJoint).dampingRatio = spineDampening;
+                    ((SpringJoint2D)curJoint).frequency = spineStrength*4;
+                    curJoint.autoConfigureConnectedAnchor = true;
                 }
+                curJoint.connectedBody = contBody;
+            }
+            
+            //find the closest vertebrae to attach to
+            int closestVertebrae(int index){
+                int? closest = null;
+                for(int a = 0; a < innerVerts.Count; a++)
+                    if(innerVerts[a] != index){
+                        if(closest == null) closest = a;
+                        else if(Vector2.Distance(vertices[index], vertices[innerVerts[a]]) < Vector2.Distance(vertices[index], vertices[innerVerts[(int)closest]]))
+                            closest = a;
+                    }
+                return innerVerts[(int)closest];
             }
         #endregion
 
         #region create skin
+            
+            
+            //initialize the sorted skin index array for later use
+            int[] sortedSkinInds = new int[vertices.Length - innerVerts.Count];
+            int skinInd = 0;
+
+            List<int> nonConform = new List<int>();
+            List<int> getExclusions(){
+                List<int> retList = new List<int>();
+                retList.AddRange(innerVerts);
+                retList.AddRange(nonConform);
+                return retList;
+            }
+
             //I dont feel like rewriting all the calls for the newer method implimentation so Ill just use this wrapper
             int neighborSkin(int ind, int skinDist){
-                return GetValidIndex(vertices.Length, ind, skinDist, innerVerts);
+                return GetValidIndex(vertices.Length, ind, skinDist, getExclusions());
             }
 
             int start = neighborSkin(vertices.Length-1,1);
@@ -192,45 +221,52 @@ public class Soft2DSim : MonoBehaviour
             int lastInd = start;
             int nextInd;
             Vector2 toward;
-
-            //find the closest vertebrae to attach to
-            int closestVertebrae(int index){
-                int closest = 0;
-                for(int a = 1; a < innerVerts.Count; a++)
-                    if(Vector2.Distance(vertices[index], vertices[innerVerts[a]]) < Vector2.Distance(vertices[index], vertices[innerVerts[closest]]))
-                        closest = a;
-                return innerVerts[closest];
-            }
+            Vector2 toVertebrae;
+            Vector2 difFromPerp;
 
             //calculate whether the vertices are indexed clockwise or counter based off the first vertices
             nextInd = neighborSkin(start, 1);
             toward = (vertices[nextInd] - vertices[start]).normalized;
-            Vector2 toVertebrae = (vertices[closestVertebrae(start)] - vertices[start]).normalized;
-            Vector2 difFromPerp = Vector2.Perpendicular(toVertebrae) - toward;
+            toVertebrae = (vertices[closestVertebrae(start)] - vertices[start]).normalized;
+            difFromPerp = Vector2.Perpendicular(toVertebrae) - toward;
             bool clockwise = (difFromPerp.magnitude < 1);
             // Debug.Log("this mesh is clockwise?..."+clockwise);
 
-            //create and join the skin colliders
-            //this assumes the vertices have been indexed in a clockwise order
+            //create the skin colliders
             float skinGap;
             Vector2 mid;
             Vector2 frontAnchor;
             Vector2 backAnchor;
             Vector2 frontConnect;
             Vector2 backConnect;
+
+            //separate the creation of the parts and inital transformations from anything else so the transforms can be synced
             for(int i = start; i < vertices.Length && lastInd <= i; i = nextInd){
+                
+                lastInd = neighborSkin(i,-1);
+                nextInd = neighborSkin(i, 1);
+
                 
                 //create the actual gameobject and rigidbody for this skin segment
                 curChild = new GameObject("part "+i, typeof(Rigidbody2D));
                 curChild.transform.parent = scaler.transform;
                 curChild.transform.localScale = new Vector3(1,1,1);
-                children[i] = curChild;
                 curChild.transform.localPosition = vertices[i];
+                children[i] = curChild;
+                //apparently after doing these manipulations on the transform I need to sync it with the physics system else it gets squirrely
                 curChild.GetComponent<Rigidbody2D>().mass = partMass;
 
+                lastInd = i;
+            }
+
+            Physics2D.SyncTransforms();
+
+            //make a collider from i to nextInd and check if it overlaps any previously made colliders
+            //destroys the newly made collider and returns false if collision was detected otherwise returns true
+            bool createCollider(int i, int nextInd, int lastInd){
+
+                curChild = children[i];
                 //set the variables for the current segment
-                lastInd = neighborSkin(i,-1);
-                nextInd = neighborSkin(i, 1);
                 skinGap = Vector2.Distance(vertices[i], vertices[nextInd]);
                 mid = curChild.transform.parent.TransformPoint((vertices[i]+vertices[nextInd])/2);
                 toward = scaler.transform.TransformDirection(vertices[nextInd] - vertices[i]);
@@ -243,102 +279,294 @@ public class Soft2DSim : MonoBehaviour
                 }
                 else
                     ((BoxCollider2D)curCollid).size = new Vector2(skinGap, skinThickness);
-                Vector3 curRot = curChild.transform.localEulerAngles;
-                curChild.transform.localEulerAngles += new Vector3(0,0, curRot.z +Vector2.SignedAngle(Vector2.right, toward));
+                curChild.transform.localEulerAngles = new Vector3(0,0, Vector2.SignedAngle(scaler.transform.TransformDirection(Vector2.right), toward));
                 curCollid.offset = curChild.transform.InverseTransformPoint(mid);
                 if(physMat != null) curCollid.sharedMaterial = physMat;
-                
 
-                //find the closest vertebrae to attach to
-                int closest = closestVertebrae(i);
+                //I belive I have to sync the transforms again after the rotation for the following collision check to work properly
+                Physics2D.SyncTransforms();
                 
+                //set the range of the scan to exclude indices not to scan
+                //use this to skip the collision check all together
+                if(lastInd != -1){
+                    
+
+                    //first scan through the innerVerts to make sure this collider isnt just cutting through the middle
+                    for(int a = 0; a < innerVerts.Count; a++){
+                        // if(i == 14 && nextInd != 15) Debug.Log("scanning "+a);
+                        if(collidersIntersect(children[innerVerts[a]].GetComponent<Collider2D>(), curCollid)){
+                            DestroyImmediate(curCollid);
+                            // Debug.Log(i+"->"+nextInd+" failed collision check at "+sortedSkinInds[a]);
+                            return false;
+                        }
+                    }
+
+                    int startOfScan;
+                    int endOfScan;
+                    //separate scans for original construction and nonConformity construction. May merge later
+                    if(lastInd == -2){
+                        endOfScan = Array.IndexOf(sortedSkinInds, nextInd);
+                        startOfScan = GetValidIndex(skinInd, endOfScan, -2);
+
+                        // if(i == 25 || i == 46) Debug.Log("start is "+startOfScan+" and the end is "+ endOfScan+" in the sorted indexes");
+
+                        //then scan through the indexes that have already been sorted
+                        for(int a = startOfScan; a != endOfScan; a = GetValidIndex(skinInd,a,-1)){
+                            // if(i == 14 && nextInd != 15) Debug.Log("scanning "+a);
+                            if(collidersIntersect(children[sortedSkinInds[a]].GetComponent<Collider2D>(), curCollid)){
+                                DestroyImmediate(curCollid);
+                                // Debug.Log(i+"->"+nextInd+" failed collision check at "+sortedSkinInds[a]);
+                                return false;
+                            }
+                        }
+                    }
+                    //pretty sloppy I should redo this at some point
+                    else{
+                        
+                        if(lastInd != -2 && neighborSkin(nextInd, -4) >= i){
+                            // Debug.Log("scan on "+i+" was abandoned due to receiving bad indexes");
+                            return true;
+                        }
+                        endOfScan = GetValidIndex(vertices.Length, 0, -1, nonConform);
+                        if(i == neighborSkin(0, -1)) endOfScan = nextInd;
+                        startOfScan = neighborSkin(nextInd, -4);
+                        
+                        if(i == 33) Debug.Log("start scan at "+ startOfScan+" and end at "+endOfScan);
+
+                        for(int a = startOfScan; a != endOfScan; a = GetValidIndex(vertices.Length,a,-1, nonConform)){
+                            // if(i == 14 && nextInd != 15) Debug.Log("scanning "+a);
+                            if(collidersIntersect(children[a].GetComponent<Collider2D>(), curCollid)){
+                                DestroyImmediate(curCollid);
+                                if(i == 33) Debug.Log(i+"->"+nextInd+" failed collision check at "+a);
+                                return false;
+                            }
+                        }
+                    }
+
+                }
+                return true;
+            }
+            
+            //loop through and create all the colliders that fit as indexed in the vertices array
+            List<int> tempIndSpecificNonCon = new List<int>();
+            lastInd = 0;
+            for(int i = start; i < vertices.Length && lastInd <= i; i = nextInd){
+                
+                lastInd = neighborSkin(i,-1);
+                nextInd = neighborSkin(i, 1);
+                if(lastInd < 0 || nextInd < 0) break;
+
+                // Debug.Log("create segment "+ i+" with next of "+ nextInd+" and last of "+ lastInd);
+                bool fit = createCollider(i, nextInd, lastInd);
+                // Debug.Log(i+" fits with "+nextInd+"?..."+ fit);
+
+                //if this skin segment conforms then add it to the sorted skin Inds
+                if(fit){
+                    tempIndSpecificNonCon.Clear();
+                    sortedSkinInds[skinInd] = i;
+                    skinInd++;
+                }
+                else{
+                    //if the loop hasnt gone halfway through the following vertexes
+                    if(tempIndSpecificNonCon.Count < (vertices.Length-(skinInd+innerVerts.Count))/2){
+                    // if(nextInd != i){
+                        // Debug.Log("would have hung");
+                        tempIndSpecificNonCon.Add(nextInd);
+                        nonConform.Add(nextInd);
+                        nextInd = i;
+                        // continue;
+                    }
+                    else{
+                        // Debug.Log("skipped backwards vertex");
+                        nonConform.RemoveAll(toRem => tempIndSpecificNonCon.Contains(toRem));
+                        tempIndSpecificNonCon.Clear();
+                        
+                        nonConform.Add(i);
+                        nextInd = neighborSkin(i,1);
+                        Debug.Log(i+" has been declared a noncomformity");
+                    }
+                }
+
+                lastInd = i;
+            }
+            // Debug.Log("here");
+            //check why there seem to be occasional false positives for nonconformity
+            //I think it has something to do where the scan starts and ends in the nonConform scans as opposed the initial creation scans
+
+            // foreach(int num in nonConform) Debug.Log(num);
+            List<int> unFit = new List<int>(nonConform);
+            //loop through the nonconformities to find where they fit in the skin
+            for(int a = 0; a < nonConform.Count; a++){
+                // Debug.Log("nonConformity: "+nonConform[a]);
+                //loop through the possible positions in the sorted array this deformity could go
+                // int conformStart = Array.IndexOf(skinIndSorted, neighborSkin(nonConform[a], 1));
+                int conformStart = 0;
+                for(int i = conformStart; i < skinInd; i++){
+
+                    int nextNext = GetValidIndex(skinInd, i, 1);
+                    bool fit = createCollider(nonConform[a], sortedSkinInds[i], -2);
+                    if(fit){
+                        //reconstruct one further because the scan direction comes from beginning but we want it to point to end
+                        // Debug.Log("nonConform "+nonConform[a]+" fits behind "+sortedSkinInds[i]);
+                        DestroyImmediate(curCollid); //this is only legit bc I just made this one
+                        fit = createCollider(nonConform[a], sortedSkinInds[nextNext], -2);
+                        if(fit){
+                            Debug.Log("nonConform "+nonConform[a]+" fits in "+sortedSkinInds[nextNext]+" slot");
+                            insertInArray(sortedSkinInds, nextNext, nonConform[a]); // test if this method is working as expected
+                            skinInd++;
+                            unFit.Remove(nonConform[a]);
+
+                            DestroyImmediate(children[sortedSkinInds[i]].GetComponent<Collider2D>());
+                            createCollider(sortedSkinInds[i], nonConform[a], -1);
+                            break;
+                        }
+                    }
+                }
+            }
+            // Debug.Log("beginning of sorted: "+sortedSkinInds[0]+", "+sortedSkinInds[1]+", "+ sortedSkinInds[2]);
+            
+            Physics2D.SyncTransforms();
+
+            int closest;
+
+            //make regular circle colliders for the unFit and create the few joints that are independent of other skin
+            for(int i = 0; i < unFit.Count; i++){
+                curCollid = children[unFit[i]].AddComponent<CircleCollider2D>();
+                ((CircleCollider2D)curCollid).radius = skinThickness/2;
+
+                Vector2 transCenter = children[unFit[i]].transform.InverseTransformPoint(curCollid.bounds.center);
+                closest = closestVertebrae(unFit[i]);
+
+                curJoint = children[sortedSkinInds[i]].AddComponent<SpringJoint2D>();
+                curJoint.connectedBody = children[closest].GetComponent<Rigidbody2D>();
+                ((SpringJoint2D)curJoint).dampingRatio = bounceDampening;
+                ((SpringJoint2D)curJoint).frequency = springStrength;
+                curJoint.anchor = transCenter;
+
                 //create the friction for this segment if its enabled
                 if(internalFriction){
-                    curJoint = curChild.AddComponent<FrictionJoint2D>();
+                    curJoint = children[sortedSkinInds[i]].AddComponent<FrictionJoint2D>();
                     curJoint.connectedBody = children[closest].GetComponent<Rigidbody2D>();
                     ((FrictionJoint2D)curJoint).maxForce = frictionStrength;
                     ((FrictionJoint2D)curJoint).maxTorque = frictionStrength*2;
-                    curJoint.anchor = curCollid.bounds.center;
+                    curJoint.anchor = transCenter;
+                }
+            }
+
+            //loop through the vertices again to configure skin joints to eachother now that the colliders have been made
+            Bounds oBounds;
+            int twoBehind;
+            //the longer this is the more likely jitter is to occur it seems
+            float hypot = Mathf.Sqrt(Mathf.Pow(mesh.bounds.size.x, 2) + Mathf.Pow(mesh.bounds.size.y, 2))/2;
+            // Debug.Log("hypot is: "+hypot);
+            lastInd = start;
+            for(int i = 0; i < skinInd; i++){
+
+                //set the variables for the current segment
+                lastInd = sortedSkinInds[GetValidIndex(skinInd, i, -1)];
+                nextInd = sortedSkinInds[GetValidIndex(skinInd, i, 1)];
+                curCollid = children[sortedSkinInds[i]].transform.GetComponent<Collider2D>();
+                oBounds = children[nextInd].transform.GetComponent<Collider2D>().bounds;
+
+                //set the front and back anchor
+                Vector2 transCenter = children[sortedSkinInds[i]].transform.InverseTransformPoint(curCollid.bounds.center);
+                Vector2 transExtents = children[sortedSkinInds[i]].transform.InverseTransformDirection(curCollid.bounds.extents);
+                backAnchor = new Vector2(transCenter.x-(Mathf.Abs(transExtents.x)*.95F), transCenter.y);
+                frontAnchor = new Vector2(transCenter.x+(Mathf.Abs(transExtents.x)*.95F), transCenter.y);
+
+                // Vector2 transMax = children[sortedSkinInds[i]].transform.InverseTransformPoint(curCollid.bounds.max);
+                // Vector2 transMin = children[sortedSkinInds[i]].transform.InverseTransformPoint(curCollid.bounds.min);
+                // backAnchor = new Vector2(transMin.x*.95F, transCenter.y);
+                // frontAnchor = new Vector2(transMax.x*.95F, transCenter.y);
+
+                // backAnchor = new Vector2(curCollid.bounds.center.x-(curCollid.bounds.extents.x*.95F), curCollid.bounds.center.y);
+                // frontAnchor = new Vector2(curCollid.bounds.center.x+(curCollid.bounds.extents.x*.95F), curCollid.bounds.center.y);
+                // backAnchor = children[sortedSkinInds[i]].transform.InverseTransformPoint(backAnchor);
+                // frontAnchor = children[sortedSkinInds[i]].transform.InverseTransformPoint(frontAnchor);
+
+                //make distance joints so colliders dont fall out the skin
+                if(impenetrable)
+                    curJoint = children[sortedSkinInds[i]].AddComponent<DistanceJoint2D>();
+                else{
+                    curJoint = children[sortedSkinInds[i]].AddComponent<SpringJoint2D>();
+                    ((SpringJoint2D)curJoint).dampingRatio = 1;
+                    ((SpringJoint2D)curJoint).frequency = 0; // zero goes to max
+                }
+                curJoint.connectedBody = children[nextInd].GetComponent<Rigidbody2D>();
+                curJoint.anchor = frontAnchor;
+
+                //connect curChild to the skin collider that is 2 behind
+                twoBehind = sortedSkinInds[GetValidIndex(skinInd, i, -2)];
+                curJoint = children[sortedSkinInds[i]].AddComponent<SpringJoint2D>();
+                ((SpringJoint2D)curJoint).dampingRatio = bounceDampening;
+                ((SpringJoint2D)curJoint).frequency = springStrength;
+                curJoint.connectedBody = children[twoBehind].GetComponent<Rigidbody2D>();
+                curJoint.anchor = backAnchor;
+                curJoint.connectedAnchor = children[twoBehind].transform.InverseTransformPoint(children[twoBehind].GetComponent<Collider2D>().bounds.center);
+
+                //find the closest vertebrae to attach to
+                closest = closestVertebrae(sortedSkinInds[i]);
+                
+                //create the friction for this segment if its enabled
+                if(internalFriction){
+                    curJoint = children[sortedSkinInds[i]].AddComponent<FrictionJoint2D>();
+                    curJoint.connectedBody = children[closest].GetComponent<Rigidbody2D>();
+                    ((FrictionJoint2D)curJoint).maxForce = frictionStrength;
+                    ((FrictionJoint2D)curJoint).maxTorque = frictionStrength*2;
+                    curJoint.anchor = transCenter;
                 }
 
-            #region join each side of segment to spine
+                //set up the Rayjoin class on the segment so it can run on its own
+                List<GameObject> rayExclude = new List<GameObject>();
+                foreach(int num in innerVerts)
+                    rayExclude.Add(children[num]);
+                rayExclude.Add(children[lastInd]);
+                rayExclude.Add(children[nextInd]);
+                children[sortedSkinInds[i]].AddComponent<RayJoin>().Setup(clockwise, rayExclude, hypot,spineStrength, spineDampening);
+
+
                 //do some vector math so calculate how this segment should join to the spine
-                backAnchor = new Vector2(curCollid.bounds.center.x-(curCollid.bounds.extents.x*.9F), curCollid.bounds.center.y);
-                frontAnchor = new Vector2(curCollid.bounds.center.x+(curCollid.bounds.extents.x*.9F), curCollid.bounds.center.y);
-                backConnect = curChild.transform.InverseTransformPoint(children[closest].transform.position);
+                backConnect = children[sortedSkinInds[i]].transform.InverseTransformPoint(children[closest].transform.position);
                 frontConnect = new Vector2((backConnect.x+frontAnchor.x)/2,backConnect.y);
                 backConnect = new Vector2((backConnect.x+backAnchor.x)/2,backConnect.y);
-                frontConnect = curChild.transform.TransformPoint(frontConnect);
-                backConnect = curChild.transform.TransformPoint(backConnect);
+                frontConnect = children[sortedSkinInds[i]].transform.TransformPoint(frontConnect);
+                backConnect = children[sortedSkinInds[i]].transform.TransformPoint(backConnect);
                 frontConnect = children[closest].transform.InverseTransformPoint(frontConnect);
                 backConnect = children[closest].transform.InverseTransformPoint(backConnect);
 
                 //configure joints
                 //connect curChild to the spine
-                curJoint = curChild.AddComponent<SpringJoint2D>();
+                curJoint = children[sortedSkinInds[i]].AddComponent<SpringJoint2D>();
                 curJoint.connectedBody = children[closest].GetComponent<Rigidbody2D>();
                 ((SpringJoint2D)curJoint).dampingRatio = bounceDampening;
                 ((SpringJoint2D)curJoint).frequency = springStrength;
                 curJoint.anchor = backAnchor;
                 curJoint.connectedAnchor = backConnect;
 
-                curJoint = curChild.AddComponent<SpringJoint2D>();
+                curJoint = children[sortedSkinInds[i]].AddComponent<SpringJoint2D>();
                 curJoint.connectedBody = children[closest].GetComponent<Rigidbody2D>();
                 ((SpringJoint2D)curJoint).dampingRatio = bounceDampening;
                 ((SpringJoint2D)curJoint).frequency = springStrength;
                 curJoint.anchor = frontAnchor;
                 curJoint.connectedAnchor = frontConnect;
-            #endregion
 
-                lastInd = i;
-            }
             
-            //loop through the vertices again to finish configuring skin joints to eachother now that the colliders have been made
-            Bounds oBounds;
-            int twoBehind;
-            float hypot = Mathf.Sqrt(Mathf.Pow(mesh.bounds.size.x, 2) + Mathf.Pow(mesh.bounds.size.y, 2));
-            // Debug.Log("hypot is: "+hypot);
-            lastInd = start;
-            for(int i = start; i < vertices.Length && lastInd <= i; i = nextInd){
-
-                //set the variables for the current segment
-                lastInd = neighborSkin(i,-1);
-                nextInd = neighborSkin(i, 1);
-                curCollid = children[i].transform.GetComponent<Collider2D>();
-                oBounds = children[nextInd].transform.GetComponent<Collider2D>().bounds;
-
-                //set the front and back anchor
-                backAnchor = new Vector2(curCollid.bounds.center.x-(curCollid.bounds.extents.x*.9F), curCollid.bounds.center.y);
-                frontAnchor = new Vector2(curCollid.bounds.center.x+(curCollid.bounds.extents.x*.9F), curCollid.bounds.center.y);
-
-                //make distance joints so colliders dont fall out the skin 
-                curJoint = children[i].AddComponent<DistanceJoint2D>();
-                curJoint.connectedBody = children[nextInd].GetComponent<Rigidbody2D>();
-                curJoint.anchor = new Vector2(curCollid.bounds.max.x, curCollid.bounds.center.y);
-
-                //connect curChild to the skin collider that is 2 behind
-                twoBehind = neighborSkin(i, -2);
-                curJoint = children[i].AddComponent<SpringJoint2D>();
-                ((SpringJoint2D)curJoint).dampingRatio = bounceDampening;
-                ((SpringJoint2D)curJoint).frequency = springStrength;
-                curJoint.connectedBody = children[twoBehind].GetComponent<Rigidbody2D>();
-                curJoint.anchor = backAnchor;
-                curJoint.connectedAnchor = children[twoBehind].GetComponent<Collider2D>().bounds.center;
-
-                //set up the Rayjoin class on the segment so it can run on its own
-                List<int> rayExclude = innerVerts.GetRange(0,innerVerts.Count);
-                rayExclude.Add(lastInd);
-                rayExclude.Add(nextInd);
-                children[i].AddComponent<RayJoin>().Setup(clockwise, rayExclude, hypot,spineStrength, spineDampening);
-            
-                lastInd = i;
+                lastInd = sortedSkinInds[i];
             }
         #endregion
         #endregion
 
             //re order the children in the scaler accoring to vertex index
-            for(int i = 0; i < children.Length; i++)
-                children[i].transform.SetSiblingIndex(i);
+            int edInd = 0;
+            for(int i = 0; i < sortedSkinInds.Length; i++){
+                // Debug.Log("set "+ i);
+                children[sortedSkinInds[i]].transform.SetSiblingIndex(edInd);
+                edInd++;
+            }
+            for(int i = 0; i < innerVerts.Count; i++){
+                children[innerVerts[i]].transform.SetSiblingIndex(edInd);
+                edInd++;
+            }
 
             //scale the scaler to fit the texture now that all the children are in
             float xScale = picDims.x/(picDims.x+skinThickness);
@@ -356,39 +584,81 @@ public class Soft2DSim : MonoBehaviour
     int GetValidIndex(int totalLength, int startInd, int endDist, List<int> exlusions){
         int dir = endDist/Mathf.Abs(endDist);
         int ret = startInd;
-        for(int skinCount = 0; skinCount != endDist && Mathf.Abs(skinCount) < totalLength-1; skinCount += dir){
-            ret = (ret + dir)%totalLength;
+        int skinCount = 0;
+
+        //check to make sure the total has atleast enough more than the exclusions to complete the travel distance
+        if((totalLength-exlusions.Count) <= endDist) return -1;
+
+        //account for starting from an invalid index
+        while(exlusions.Contains(ret) && Mathf.Abs(ret) < totalLength){
             if(ret + dir < 0)
                 ret = totalLength+dir;
+            else ret = (ret + dir)%totalLength;
+            skinCount = dir;
+        }
+
+        for(; skinCount != endDist && Mathf.Abs(skinCount) < totalLength-1; skinCount += dir){
+            if(ret + dir < 0)
+                ret = totalLength+dir;
+            else ret = (ret + dir)%totalLength; 
             while(exlusions.Contains(ret) && Mathf.Abs(ret) < totalLength){
-                ret = (ret + dir)%totalLength;
                 if(ret + dir < 0)
                     ret = totalLength+dir;
+                else ret = (ret + dir)%totalLength;
             }
         }
         return ret;
     }
 
-
-    //get the total bounds of an object and its children in world space
-    //super useful for scaling purposes
-    //pass a second parameter of true to base the bounds on colliders instead of renderers
-    Bounds GetMaxBounds(GameObject g, bool colliderBased = false){
-        Bounds b = new Bounds(g.transform.position, Vector3.zero);
-        Bounds temp;
-        if(colliderBased)
-            foreach (Collider2D c in g.GetComponentsInChildren<Collider2D>()){
-                temp = new Bounds(c.transform.TransformPoint(c.bounds.center), c.bounds.size);
-                b.Encapsulate(temp);
-            }
-        else
-            foreach (Renderer r in g.GetComponentsInChildren<Renderer>()){
-                temp = new Bounds(r.transform.TransformPoint(r.bounds.center), r.bounds.size);
-                b.Encapsulate(temp);
-            }
-        return b;
+    int GetValidIndex(int totalLength, int startInd, int endDist){
+        int dir = endDist/Mathf.Abs(endDist);
+        int ret = startInd;
+        for(int skinCount = 0; skinCount != endDist && Mathf.Abs(skinCount) < totalLength-1; skinCount += dir){
+            if(ret + dir < 0)
+                ret = totalLength+dir;
+            else ret = (ret + dir)%totalLength;
+        }
+        return ret;
     }
 
+    T[] insertInArray<T>(T[] arr, int index, T toInsert){
+        for(int i = arr.Length-1; i > index; i--){
+            arr[i] = arr[i-1];
+        }
+        arr[index] = toInsert;
+        return arr;
+    }
+
+
+    bool collidersIntersect(Collider2D collidA, Collider2D collidB){
+        Vector2 bCloseToA = collidB.ClosestPoint(collidA.transform.TransformPoint(collidA.offset));
+        Vector2 aCloseToB = collidA.ClosestPoint(bCloseToA);
+        // Instance.spawnDot(aCloseToB);
+        // Instance.spawnDot(bCloseToA);
+        bCloseToA = collidB.ClosestPoint(aCloseToB);
+        if(aCloseToB == bCloseToA) return true;
+        //switch the colliders names so I can just copy and paste the above
+        Collider2D save = collidA;
+        collidA = collidB;
+        collidB = save;
+        bCloseToA = collidB.ClosestPoint(collidA.transform.TransformPoint(collidA.offset));
+        aCloseToB = collidA.ClosestPoint(bCloseToA);
+        bCloseToA = collidB.ClosestPoint(aCloseToB);
+        return aCloseToB == bCloseToA;
+    }
+
+
+    [ContextMenu("Clear")]
+    void Clear(){
+        // Debug.ClearDeveloperConsole();
+        if(sprite != null){
+            mesh = null;
+            mat = null;
+        }
+        Transform parts = transform.Find("parts");
+        if(parts != null)
+            DestroyImmediate(parts.gameObject);
+    }
 
     void Update(){
         if(transform.Find("parts") != null){

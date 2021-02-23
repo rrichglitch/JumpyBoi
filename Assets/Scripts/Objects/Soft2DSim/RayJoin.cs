@@ -8,14 +8,14 @@ public class RayJoin : MonoBehaviour
 {
     private bool setup = false;
     private bool clockwise;
-    private List<int> exclude;
+    private List<GameObject> exclude;
     private float dist;
     private float springStrength;
     private float bounceDampening;
     void Awake(){
         Update();
     }
-    public void Setup(bool _clockwise, List<int> _exclude, float _dist, float _springStrength, float _bounceDampening){
+    public void Setup(bool _clockwise, List<GameObject> _exclude, float _dist, float _springStrength, float _bounceDampening){
 
         clockwise = _clockwise;
         exclude = _exclude;
@@ -46,8 +46,8 @@ public class RayJoin : MonoBehaviour
 
             Vector2 transCenter = transform.InverseTransformPoint(curCollid.bounds.center);
             Vector2 transExtents = transform.InverseTransformVector(curCollid.bounds.extents);
-            backAnchor = new Vector2(transCenter.x-(transExtents.x*.9F), transCenter.y);
-            frontAnchor = new Vector2(transCenter.x+(transExtents.x*.9F), transCenter.y);
+            backAnchor = new Vector2(transCenter.x-(transExtents.x*.95F), transCenter.y);
+            frontAnchor = new Vector2(transCenter.x+(transExtents.x*.95F), transCenter.y);
             float rot = transform.eulerAngles.z;
 
             if(clockwise){
@@ -65,9 +65,8 @@ public class RayJoin : MonoBehaviour
                 for(int a = 0; a < resultLen; a++){
                     Collider2D ret;
                     if(results[a].collider != null){
-                        int childSpot = siblings.IndexOf(results[a].collider.gameObject);//changed to work with list
-                        if(childSpot >= 0)
-                            if(!exclude.Contains(childSpot)){
+                        if(siblings.Contains(results[a].collider.gameObject))
+                            if(!exclude.Contains(results[a].collider.gameObject)){
                                 // Debug.Log(name+" points at "+results[a].collider.name);
                                 setup = false;
                                 ret = results[a].collider;

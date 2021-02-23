@@ -13,6 +13,7 @@ public class Commons : Singleton<Commons>
     public GameObject body;
     public static bool useTongue = true;
     [SerializeField] private GameObject notifation;
+    [SerializeField] private GameObject dot_prefab;
     private Animator anim;
     private TMP_Text notiText;
     void Start(){
@@ -48,7 +49,7 @@ public class Commons : Singleton<Commons>
     //get the total bounds of an object and its children in world space
     //super useful for scaling purposes
     //pass a second parameter of true to base the bounds on colliders instead of renderers
-    static public Bounds GetMaxBounds(GameObject g, bool colliderBased = false){
+    static public Bounds GetWholeBounds(GameObject g, bool colliderBased = false){
         Bounds b = new Bounds(g.transform.position, Vector3.zero);
         Bounds temp;
         if(colliderBased)
@@ -62,6 +63,10 @@ public class Commons : Singleton<Commons>
                 b.Encapsulate(temp);
             }
         return b;
+    }
+
+    static public Bounds collidBoundsToWorld(Collider2D collid){
+        return new Bounds(collid.transform.TransformPoint(collid.bounds.center), collid.bounds.size);
     }
 
     //a method to get the an element the appropriate count away from an index while excluding certain indices
@@ -79,17 +84,80 @@ public class Commons : Singleton<Commons>
     static public int GetValidIndex(int totalLength, int startInd, int endDist, List<int> exlusions){
         int dir = endDist/Mathf.Abs(endDist);
         int ret = startInd;
-        for(int skinCount = 0; skinCount != endDist && Mathf.Abs(skinCount) < totalLength-1; skinCount += dir){
-            ret = (ret + dir)%totalLength;
+        int skinCount = 0;
+        //account for starting from an invalid index
+        while(exlusions.Contains(ret) && Mathf.Abs(ret) < totalLength){
             if(ret + dir < 0)
                 ret = totalLength+dir;
+            else ret = (ret + dir)%totalLength;
+            skinCount = dir;
+        }
+
+        for(; skinCount != endDist && Mathf.Abs(skinCount) < totalLength-1; skinCount += dir){
+            if(ret + dir < 0)
+                ret = totalLength+dir;
+            else ret = (ret + dir)%totalLength; 
             while(exlusions.Contains(ret) && Mathf.Abs(ret) < totalLength){
-                ret = (ret + dir)%totalLength;
                 if(ret + dir < 0)
                     ret = totalLength+dir;
+                else ret = (ret + dir)%totalLength;
             }
         }
         return ret;
+    }
+
+    //Is a triangle in 2d space oriented clockwise or counter-clockwise
+    //https://math.stackexchange.com/questions/1324179/how-to-tell-if-3-connected-points-are-connected-clockwise-or-counter-clockwise
+    //https://en.wikipedia.org/wiki/Curve_orientation
+    public static bool IsTriangleClockwise(Vector2 p1, Vector2 p2, Vector2 p3)
+    {
+        bool isClockWise = true;
+
+        float determinant = p1.x * p2.y + p3.x * p1.y + p2.x * p3.y - p1.x * p3.y - p3.x * p2.y - p2.x * p1.y;
+
+        if (determinant > 0f)
+        {
+            isClockWise = false;
+        }
+
+        return isClockWise;
+    }
+
+    public static T[] insertInArray<T>(T[] arr, int index, T toInsert){
+        for(int i = arr.Length-1; i > index; i--){
+            arr[i] = arr[i-1];
+        }
+        arr[index] = toInsert;
+        return arr;
+    }
+
+    public static bool IsInside(Collider c, Vector3 point){
+        Vector3 closest = c.ClosestPoint(point);
+        // Because closest=point if point is inside - not clear from docs I feel
+        return closest == point;
+    }
+
+    //more erroneous the more un-spherical a collider is
+    //there seems to be some kind of weirdness with closestPoints in and out coordinates in certain conditions
+    public static bool collidersIntersect(Collider2D collidA, Collider2D collidB){
+        Vector2 bCloseToA = collidB.ClosestPoint(collidA.transform.TransformPoint(collidA.offset));
+        Vector2 aCloseToB = collidA.ClosestPoint(bCloseToA);
+        // Commons.Instance.spawnDot(aCloseToB);
+        // Commons.Instance.spawnDot(bCloseToA);
+        bCloseToA = collidB.ClosestPoint(aCloseToB);
+        if(aCloseToB == bCloseToA) return true;
+        //switch the colliders names so I can just copy and paste the above
+        Collider2D save = collidA;
+        collidA = collidB;
+        collidB = save;
+        bCloseToA = collidB.ClosestPoint(collidA.transform.TransformPoint(collidA.offset));
+        aCloseToB = collidA.ClosestPoint(bCloseToA);
+        bCloseToA = collidB.ClosestPoint(aCloseToB);
+        return aCloseToB == bCloseToA;
+    }
+
+    public void spawnDot(Vector3 location){
+        Instantiate(dot_prefab, location, Quaternion.identity);
     }
 }
 // public interface Listener{}
