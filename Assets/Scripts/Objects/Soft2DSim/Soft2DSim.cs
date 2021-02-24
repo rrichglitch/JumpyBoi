@@ -14,22 +14,24 @@ public class Soft2DSim : MonoBehaviour
     public Mesh mesh; //only necessary if no sprite has been set
     public Material mat; //this is material that holds the right shader and texture for the mesh assigned
     [Range(3,9)] public int consideredIn = 4; //this is the threshhold of number of triangles a vertex must be in the be considered an inner vertex
-    public bool solidSpine = true; //are the spine segments in a fixed place
-    [MinAttribute(0)] public float vertebraeMass = 1;
-    [MinAttribute(0)] public float spineStrength = 5;
-    [Range(0,1)] public float spineDampening = .9F;
-    public bool internalFriction = false; //should energy be held in the soft object?(should deformations be more permanent?)
-    [MinAttribute(0)] public float frictionStrength = 1;
-    [MinAttribute(0)] public float skinThickness = .3F;
+    public bool rigidSpine = false; //are the spine segments in a fixed place. Turn this off for large complex objects that freak out in simulation
+    [MinAttribute(0)] public float vertebraeMass = 2; //the mass of the vertebrae
+    [MinAttribute(0)] public float spineStrength = 0; //the strength of the springs holding the vertebrae to where they start
+    [Range(0,1)] public float spineDampening = 1; //how not-bouncy is the spine
+    public bool internalFriction = false; //should energy be diffused into the soft object?(should deformations be more permanent?). reduces jitter if present
+    [MinAttribute(0)] public float frictionStrength = 3;
+    [MinAttribute(0.02F)] public float skinThickness = .1F;
     private float squarEdgeRad{get{return skinThickness/4;}}
     public PhysicsMaterial2D physMat; //set this should the skin use a speciific physics material
-    public bool impenetrable = true; //if true the skin uses distance joints to stay together otherwise it uses maxed spring joints. toggle if theres jitter
-    [MinAttribute(0)] public float partMass = 1; //the mass of the skin segments
-    [MinAttribute(0)] public float springStrength = 3; //the strength of the springs holding the  skin in place
-    [Range(0,1)] public float bounceDampening = .9F; //how un-bouncy is the skin
+    public bool rigidSkinLinks = true; //if true the skin uses distance joints to stay together otherwise it uses maxed spring joints. toggle if theres jitter
+    [MinAttribute(0)] public float partMass = .6F; //the mass of the skin segments
+    [MinAttribute(0)] public float springStrength = 10; //the strength of the springs holding the  skin in place
+    [Range(0,1)] public float bounceDampening = .8F; //how not-bouncy is the skin
+    [Range(15,150)] private float angleShrinkThresh = 54; //serialize this to change in editor
     public bool updateVariablesLive; //enable this when fiddling with different values on joints and such but disable for actual play
     [SerializeField, HideInInspector] private GameObject[] children;
     [SerializeField, HideInInspector] private List<int> innerVerts;
+    [SerializeField, HideInInspector] private int[] sortedSkinInds;
     [SerializeField, HideInInspector] private Vector3[] vertices;
     
     
@@ -170,7 +172,7 @@ public class Soft2DSim : MonoBehaviour
                 ((CircleCollider2D)curCollid).radius = skinThickness/2;
 
                 //configure joints
-                if(solidSpine){
+                if(rigidSpine){
                     curJoint = curChild.AddComponent<FixedJoint2D>();
                 }
                 else{
@@ -199,7 +201,7 @@ public class Soft2DSim : MonoBehaviour
             
             
             //initialize the sorted skin index array for later use
-            int[] sortedSkinInds = new int[vertices.Length - innerVerts.Count];
+            sortedSkinInds = new int[vertices.Length - innerVerts.Count];
             int skinInd = 0;
 
             List<int> nonConform = new List<int>();
@@ -293,18 +295,18 @@ public class Soft2DSim : MonoBehaviour
                 Vector2 fromBack = scaler.transform.TransformDirection(vertices[i] - vertices[back]);
                 Vector2 toNext = scaler.transform.TransformDirection(vertices[neighborSkin(nextInd,1)] - vertices[nextInd]);
                 float ang = Vector2.SignedAngle(fromBack,toNext);
-                if(Mathf.Abs(ang) > 54){
+                if(Mathf.Abs(ang) > angleShrinkThresh){
                     Vector2 oldSize = ((BoxCollider2D)curCollid).size;
                     if(((BoxCollider2D)curCollid).edgeRadius > 0)
                         oldSize.y *= .1F;
                     else oldSize.y *= .49F;
                     ((BoxCollider2D)curCollid).size = oldSize;
-                    if((clockwise == (ang < 0))){
-                        // Debug.Log("offsetting "+i+" with ang "+ang);
-                        Vector2 oldOff = curCollid.offset;
-                        oldOff.y += (skinThickness/5) * (clockwise? 1: -1);
-                        curCollid.offset = oldOff;
-                    }
+                    // if((clockwise == (ang < 0))){
+                    //     // Debug.Log("offsetting "+i+" with ang "+ang);
+                    //     Vector2 oldOff = curCollid.offset;
+                    //     oldOff.y += (skinThickness/5) * (clockwise? 1: -1);
+                    //     curCollid.offset = oldOff;
+                    // }
                 }
 
                 
@@ -329,15 +331,20 @@ public class Soft2DSim : MonoBehaviour
                     if(lastInd == -2){
                         endOfScan = Array.IndexOf(sortedSkinInds, nextInd);
                         startOfScan = GetValidIndex(skinInd, endOfScan, -2);
-
-                        // if(i == 25 || i == 46) Debug.Log("start is "+startOfScan+" and the end is "+ endOfScan+" in the sorted indexes");
+                        
+                        if(i == 113) Debug.Log("start scan at "+ sortedSkinInds[startOfScan]+" and end at "+sortedSkinInds[endOfScan]);
+                        // if(i==113){
+                        //     Commons.Instance.spawnDot(children[i].transform.TransformPoint(curCollid.offset));
+                        //     for(int a = 0; a < 2; a++)
+                        //         Commons.collidersIntersect(children[a].GetComponent<Collider2D>(), curCollid, true);
+                        // }
 
                         //then scan through the indexes that have already been sorted
                         for(int a = startOfScan; a != endOfScan; a = GetValidIndex(skinInd,a,-1)){
                             // if(i == 14 && nextInd != 15) Debug.Log("scanning "+a);
                             if(collidersIntersect(children[sortedSkinInds[a]].GetComponent<Collider2D>(), curCollid)){
                                 DestroyImmediate(curCollid);
-                                // Debug.Log(i+"->"+nextInd+" failed collision check at "+sortedSkinInds[a]);
+                                if(i == 113) Debug.Log(i+"->"+nextInd+" failed collision check at "+sortedSkinInds[a]);
                                 return false;
                             }
                         }
@@ -353,13 +360,18 @@ public class Soft2DSim : MonoBehaviour
                         if(i == neighborSkin(0, -1)) endOfScan = nextInd;
                         startOfScan = neighborSkin(nextInd, -4);
                         
-                        // if(i == 33) Debug.Log("start scan at "+ startOfScan+" and end at "+endOfScan);
+                        if(i == 113) Debug.Log("start scan at "+ startOfScan+" and end at "+endOfScan);
+                        // if(i==113){
+                        //     Commons.Instance.spawnDot(children[i].transform.TransformPoint(curCollid.offset));
+                        //     for(int a = 0; a < 2; a++)
+                        //         Commons.collidersIntersect(children[a].GetComponent<Collider2D>(), curCollid, true);
+                        // }
 
                         for(int a = startOfScan; a != endOfScan; a = GetValidIndex(vertices.Length,a,-1, nonConform)){
                             // if(i == 14 && nextInd != 15) Debug.Log("scanning "+a);
                             if(collidersIntersect(children[a].GetComponent<Collider2D>(), curCollid)){
                                 DestroyImmediate(curCollid);
-                                if(i == 33) Debug.Log(i+"->"+nextInd+" failed collision check at "+a);
+                                if(i == 123) Debug.Log(i+"->"+nextInd+" failed collision check at "+a);
                                 return false;
                             }
                         }
@@ -386,17 +398,19 @@ public class Soft2DSim : MonoBehaviour
                 if(fit){
                     sortedSkinInds[skinInd] = i;
                     skinInd++;
+
+                    // if(i==113) return;
+
                     //if the tempNonConforms arent clean then re-create the last segment so angle scaling is right
                     if(tempNonConforms.Count > 0){
                         DestroyImmediate(children[sortedSkinInds[skinInd-2]].GetComponent<Collider2D>());
                         createCollider(sortedSkinInds[skinInd-2], sortedSkinInds[skinInd-1], -1);
                     }
                     tempNonConforms.Clear();
-
                 }
                 else{
-                    //if the loop hasnt gone halfway through the following vertexes
-                    if(tempNonConforms.Count < (vertices.Length-(skinInd+innerVerts.Count))/2){
+                    //if the loop hasnt gone halfway through the legit vertexes
+                    if(tempNonConforms.Count <= (vertices.Length-(innerVerts.Count + (nonConform.Count-tempNonConforms.Count))/2)){
                     // if(nextInd != i){
                         // Debug.Log("would have hung");
                         tempNonConforms.Add(nextInd);
@@ -405,19 +419,22 @@ public class Soft2DSim : MonoBehaviour
                         // continue;
                     }
                     else{
-                        // Debug.Log("skipped backwards vertex");
+                        Debug.Log("skipped nonConform "+i);
                         nonConform.RemoveAll(toRem => tempNonConforms.Contains(toRem));
                         tempNonConforms.Clear();
                         
                         nonConform.Add(i);
                         nextInd = neighborSkin(i,1);
-                        Debug.Log(i+" has been declared a noncomformity");
+                        // Debug.Log(i+" has been declared a noncomformity");
                     }
                 }
 
                 lastInd = i;
             }
+
             // Debug.Log("here");
+            // return;
+
             //check why there seem to be occasional false positives for nonconformity
             //I think it has something to do where the scan starts and ends in the nonConform scans as opposed the initial creation scans
 
@@ -429,37 +446,65 @@ public class Soft2DSim : MonoBehaviour
 
                 //if this nonConform was in the position behind first
                 if(neighborSkin(nonConform[a],1) == start){
-                    Debug.Log("remade the first skin at index " + neighborSkin(nonConform[a],1));
+                    // Debug.Log("remade the first skin at index " + neighborSkin(nonConform[a],1));
                     DestroyImmediate(children[sortedSkinInds[0]].GetComponent<Collider2D>());
                     createCollider(sortedSkinInds[0], sortedSkinInds[1], sortedSkinInds[skinInd-1]);
                 }
 
+                List<int> aFits = new List<int>();
                 //loop through the possible positions in the sorted array this deformity could go
-                // int conformStart = Array.IndexOf(skinIndSorted, neighborSkin(nonConform[a], 1));
-                int conformStart = 0;
-                for(int i = conformStart; i < skinInd; i++){
+                for(int i = 0; i < skinInd; i++){
 
                     int nextNext = GetValidIndex(skinInd, i, 1);
                     bool fit = createCollider(nonConform[a], sortedSkinInds[i], -2);
                     if(fit){
+                        // if(nonConform[a] == 113){
+                        //     Debug.Log(nonConform[a]+" accepted "+i+" as its next");
+                        //     Debug.Log("the raw index of which is "+sortedSkinInds[i]);
+                        //     return;
+                        // }
                         //reconstruct one further because the scan direction comes from beginning but we want it to point to end
-                        // Debug.Log("nonConform "+nonConform[a]+" fits behind "+sortedSkinInds[i]);
                         DestroyImmediate(curCollid); //this is only legit bc I just made this one
                         fit = createCollider(nonConform[a], sortedSkinInds[nextNext], -2);
                         if(fit){
                             Debug.Log("nonConform "+nonConform[a]+" fits in "+sortedSkinInds[nextNext]+" slot");
-                            insertInArray(sortedSkinInds, nextNext, nonConform[a]); // test if this method is working as expected
-                            skinInd++;
-                            unFit.Remove(nonConform[a]);
 
-                            //recreate the collider that leads to the new one
-                            DestroyImmediate(children[sortedSkinInds[i]].GetComponent<Collider2D>());
-                            createCollider(sortedSkinInds[i], nonConform[a], -1);
+                            aFits.Add(nextNext);
+                            DestroyImmediate(curCollid);
+                            
+                            // insertInArray(sortedSkinInds, nextNext, nonConform[a]); // test if this method is working as expected
+                            // skinInd++;
+                            // unFit.Remove(nonConform[a]);
 
-                            break;
+                            // //recreate the collider that leads to the new one
+                            // DestroyImmediate(children[sortedSkinInds[i]].GetComponent<Collider2D>());
+                            // createCollider(sortedSkinInds[i], nonConform[a], -1);
+
+                            // break;
                         }
                     }
                 }
+                
+                if(aFits.Count > 0){
+                    int closestFit = aFits[0];
+                    for(int fitsInd = 0; fitsInd < aFits.Count; fitsInd++){
+                        if(Vector2.Distance(vertices[sortedSkinInds[aFits[fitsInd]]], vertices[nonConform[a]]) < Vector2.Distance(vertices[sortedSkinInds[closestFit]], vertices[nonConform[a]])){
+                            closestFit = aFits[fitsInd];
+                        }
+                    }
+
+                    createCollider(nonConform[a], sortedSkinInds[closestFit], -1);
+
+                    int i = GetValidIndex(skinInd, closestFit, -1);
+                    insertInArray(sortedSkinInds, closestFit, nonConform[a]); // test if this method is working as expected
+                    skinInd++;
+                    unFit.Remove(nonConform[a]);
+
+                    //recreate the collider that leads to the new one
+                    DestroyImmediate(children[sortedSkinInds[i]].GetComponent<Collider2D>());
+                    createCollider(sortedSkinInds[i], nonConform[a], -1);
+                }
+                aFits.Clear();
             }
             // Debug.Log("beginning of sorted: "+sortedSkinInds[0]+", "+sortedSkinInds[1]+", "+ sortedSkinInds[2]);
             
@@ -478,7 +523,7 @@ public class Soft2DSim : MonoBehaviour
                 curJoint = children[sortedSkinInds[i]].AddComponent<SpringJoint2D>();
                 curJoint.connectedBody = children[closest].GetComponent<Rigidbody2D>();
                 ((SpringJoint2D)curJoint).dampingRatio = bounceDampening;
-                ((SpringJoint2D)curJoint).frequency = springStrength;
+                ((SpringJoint2D)curJoint).frequency = springStrength*6;
                 curJoint.anchor = transCenter;
 
                 //create the friction for this segment if its enabled
@@ -524,7 +569,7 @@ public class Soft2DSim : MonoBehaviour
                 // frontAnchor = children[sortedSkinInds[i]].transform.InverseTransformPoint(frontAnchor);
 
                 //make distance joints so colliders dont fall out the skin
-                if(impenetrable)
+                if(rigidSkinLinks)
                     curJoint = children[sortedSkinInds[i]].AddComponent<DistanceJoint2D>();
                 else{
                     curJoint = children[sortedSkinInds[i]].AddComponent<SpringJoint2D>();
@@ -561,7 +606,7 @@ public class Soft2DSim : MonoBehaviour
                     rayExclude.Add(children[num]);
                 rayExclude.Add(children[lastInd]);
                 rayExclude.Add(children[nextInd]);
-                children[sortedSkinInds[i]].AddComponent<RayJoin>().Setup(clockwise, rayExclude, hypot,spineStrength, spineDampening);
+                children[sortedSkinInds[i]].AddComponent<RayJoin>().Setup(clockwise, rayExclude, hypot,springStrength, bounceDampening);
 
 
                 //do some vector math so calculate how this segment should join to the spine
@@ -672,14 +717,14 @@ public class Soft2DSim : MonoBehaviour
     bool collidersIntersect(Collider2D collidA, Collider2D collidB){
         Vector2 bCloseToA = collidB.ClosestPoint(collidA.transform.TransformPoint(collidA.offset));
         Vector2 aCloseToB = collidA.ClosestPoint(bCloseToA);
-        // Instance.spawnDot(aCloseToB);
-        // Instance.spawnDot(bCloseToA);
         bCloseToA = collidB.ClosestPoint(aCloseToB);
         if(aCloseToB == bCloseToA) return true;
+        
         //switch the colliders names so I can just copy and paste the above
         Collider2D save = collidA;
         collidA = collidB;
         collidB = save;
+
         bCloseToA = collidB.ClosestPoint(collidA.transform.TransformPoint(collidA.offset));
         aCloseToB = collidA.ClosestPoint(bCloseToA);
         bCloseToA = collidB.ClosestPoint(aCloseToB);
@@ -688,7 +733,7 @@ public class Soft2DSim : MonoBehaviour
 
 
     [ContextMenu("Clear")]
-    void Clear(){
+    public void Clear(){
         // Debug.ClearDeveloperConsole();
         if(sprite != null){
             mesh = null;
@@ -742,24 +787,24 @@ public class Soft2DSim : MonoBehaviour
 
                 //sync the values for the skin
                 FrictionJoint2D frict;
-                for(int i = 0; i < children.Length; i++){
+                for(int i = 0; i < sortedSkinInds.Length; i++){
 
-                    //rigidbody values
-                    bod = children[i].GetComponent<Rigidbody2D>();
+                    //rigidbody values: mass
+                    bod = children[sortedSkinInds[i]].GetComponent<Rigidbody2D>();
                     if(bod != null){
                         bod.mass = partMass;
                         bod.WakeUp();
                     }
 
-                    //spring values
-                    springs = children[i].GetComponents<SpringJoint2D>();
+                    //spring values: spring strength and dampening
+                    springs = children[sortedSkinInds[i]].GetComponents<SpringJoint2D>();
                     for(int b = 0; b < springs.Length; b++){
                         springs[b].frequency = springStrength;
                         springs[b].dampingRatio = bounceDampening;
                     }
 
-                    //collider values
-                    collid = children[i].GetComponent<BoxCollider2D>();
+                    //collider values: skin thickness, edge radius, and physics material
+                    collid = children[sortedSkinInds[i]].GetComponent<BoxCollider2D>();
                     if(collid != null){
                         Vector2 dimSave = ((BoxCollider2D)collid).size;
                         if(dimSave.y < skinThickness/2){
@@ -774,11 +819,11 @@ public class Soft2DSim : MonoBehaviour
                             else ((BoxCollider2D)collid).size = new Vector2(dimSave.x, skinThickness);
                         }
 
-                        if(physMat != null) collid.sharedMaterial = physMat;
+                        collid.sharedMaterial = physMat;
                     }
 
                     //friction values
-                    frict = children[i].GetComponent<FrictionJoint2D>();
+                    frict = children[sortedSkinInds[i]].GetComponent<FrictionJoint2D>();
                     if(frict != null){
                         frict.maxForce = frictionStrength;
                         frict.maxTorque = frictionStrength*2;

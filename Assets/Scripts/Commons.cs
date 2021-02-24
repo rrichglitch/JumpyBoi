@@ -139,11 +139,13 @@ public class Commons : Singleton<Commons>
 
     //more erroneous the more un-spherical a collider is
     //there seems to be some kind of weirdness with closestPoints in and out coordinates in certain conditions
-    public static bool collidersIntersect(Collider2D collidA, Collider2D collidB){
+    public static bool collidersIntersect(Collider2D collidA, Collider2D collidB, bool drawDots = false){
         Vector2 bCloseToA = collidB.ClosestPoint(collidA.transform.TransformPoint(collidA.offset));
         Vector2 aCloseToB = collidA.ClosestPoint(bCloseToA);
-        // Commons.Instance.spawnDot(aCloseToB);
-        // Commons.Instance.spawnDot(bCloseToA);
+        if(drawDots){
+            Instance.spawnDot(aCloseToB);
+            Instance.spawnDot(bCloseToA);
+        }
         bCloseToA = collidB.ClosestPoint(aCloseToB);
         if(aCloseToB == bCloseToA) return true;
         //switch the colliders names so I can just copy and paste the above
@@ -152,6 +154,10 @@ public class Commons : Singleton<Commons>
         collidB = save;
         bCloseToA = collidB.ClosestPoint(collidA.transform.TransformPoint(collidA.offset));
         aCloseToB = collidA.ClosestPoint(bCloseToA);
+        if(drawDots){
+            Instance.spawnDot(aCloseToB);
+            Instance.spawnDot(bCloseToA);
+        }
         bCloseToA = collidB.ClosestPoint(aCloseToB);
         return aCloseToB == bCloseToA;
     }
