@@ -221,16 +221,15 @@ public class Soft2DSim : MonoBehaviour
             int lastInd = start;
             int nextInd;
             Vector2 toward;
+            
             Vector2 toVertebrae;
             Vector2 difFromPerp;
-
-            //calculate whether the vertices are indexed clockwise or counter based off the first vertices
-            nextInd = neighborSkin(start, 1);
-            toward = (vertices[nextInd] - vertices[start]).normalized;
+            //calculate whether the vertices are indexed clockwise or counter based off the first sorted vertices
+            toward = (vertices[neighborSkin(start, 1)] - vertices[start]).normalized;
             toVertebrae = (vertices[closestVertebrae(start)] - vertices[start]).normalized;
             difFromPerp = Vector2.Perpendicular(toVertebrae) - toward;
             bool clockwise = (difFromPerp.magnitude < 1);
-            // Debug.Log("this mesh is clockwise?..."+clockwise);
+            Debug.Log("this mesh is clockwise?..."+clockwise);
 
             //create the skin colliders
             float skinGap;
@@ -245,7 +244,6 @@ public class Soft2DSim : MonoBehaviour
                 
                 lastInd = neighborSkin(i,-1);
                 nextInd = neighborSkin(i, 1);
-
                 
                 //create the actual gameobject and rigidbody for this skin segment
                 curChild = new GameObject("part "+i, typeof(Rigidbody2D));
@@ -271,10 +269,11 @@ public class Soft2DSim : MonoBehaviour
                 mid = curChild.transform.parent.TransformPoint((vertices[i]+vertices[nextInd])/2);
                 toward = scaler.transform.TransformDirection(vertices[nextInd] - vertices[i]);
 
+
                 //make the collider for this segment
                 curCollid = curChild.AddComponent<BoxCollider2D>();
                 if(skinGap > squarEdgeRad*2 && skinThickness > squarEdgeRad*2){
-                    ((BoxCollider2D)curCollid).size = new Vector2(skinGap-(squarEdgeRad*2), skinThickness-(squarEdgeRad*2));
+                    ((BoxCollider2D)curCollid).size = new Vector2(skinGap-(squarEdgeRad*2), skinThickness/2);
                     ((BoxCollider2D)curCollid).edgeRadius = squarEdgeRad;
                 }
                 else
@@ -285,6 +284,29 @@ public class Soft2DSim : MonoBehaviour
 
                 //I belive I have to sync the transforms again after the rotation for the following collision check to work properly
                 Physics2D.SyncTransforms();
+
+                
+                //calculate if this collider is an outer corner to shrink the collider
+                int back;
+                if(lastInd< 0) back = sortedSkinInds[GetValidIndex(skinInd,Array.IndexOf(sortedSkinInds, nextInd),-1)];
+                else back = lastInd;
+                Vector2 fromBack = scaler.transform.TransformDirection(vertices[i] - vertices[back]);
+                Vector2 toNext = scaler.transform.TransformDirection(vertices[neighborSkin(nextInd,1)] - vertices[nextInd]);
+                float ang = Vector2.SignedAngle(fromBack,toNext);
+                if(Mathf.Abs(ang) > 54){
+                    Vector2 oldSize = ((BoxCollider2D)curCollid).size;
+                    if(((BoxCollider2D)curCollid).edgeRadius > 0)
+                        oldSize.y *= .1F;
+                    else oldSize.y *= .49F;
+                    ((BoxCollider2D)curCollid).size = oldSize;
+                    if((clockwise == (ang < 0))){
+                        // Debug.Log("offsetting "+i+" with ang "+ang);
+                        Vector2 oldOff = curCollid.offset;
+                        oldOff.y += (skinThickness/5) * (clockwise? 1: -1);
+                        curCollid.offset = oldOff;
+                    }
+                }
+
                 
                 //set the range of the scan to exclude indices not to scan
                 //use this to skip the collision check all together
@@ -331,7 +353,7 @@ public class Soft2DSim : MonoBehaviour
                         if(i == neighborSkin(0, -1)) endOfScan = nextInd;
                         startOfScan = neighborSkin(nextInd, -4);
                         
-                        if(i == 33) Debug.Log("start scan at "+ startOfScan+" and end at "+endOfScan);
+                        // if(i == 33) Debug.Log("start scan at "+ startOfScan+" and end at "+endOfScan);
 
                         for(int a = startOfScan; a != endOfScan; a = GetValidIndex(vertices.Length,a,-1, nonConform)){
                             // if(i == 14 && nextInd != 15) Debug.Log("scanning "+a);
@@ -348,7 +370,7 @@ public class Soft2DSim : MonoBehaviour
             }
             
             //loop through and create all the colliders that fit as indexed in the vertices array
-            List<int> tempIndSpecificNonCon = new List<int>();
+            List<int> tempNonConforms = new List<int>();
             lastInd = 0;
             for(int i = start; i < vertices.Length && lastInd <= i; i = nextInd){
                 
@@ -362,24 +384,30 @@ public class Soft2DSim : MonoBehaviour
 
                 //if this skin segment conforms then add it to the sorted skin Inds
                 if(fit){
-                    tempIndSpecificNonCon.Clear();
                     sortedSkinInds[skinInd] = i;
                     skinInd++;
+                    //if the tempNonConforms arent clean then re-create the last segment so angle scaling is right
+                    if(tempNonConforms.Count > 0){
+                        DestroyImmediate(children[sortedSkinInds[skinInd-2]].GetComponent<Collider2D>());
+                        createCollider(sortedSkinInds[skinInd-2], sortedSkinInds[skinInd-1], -1);
+                    }
+                    tempNonConforms.Clear();
+
                 }
                 else{
                     //if the loop hasnt gone halfway through the following vertexes
-                    if(tempIndSpecificNonCon.Count < (vertices.Length-(skinInd+innerVerts.Count))/2){
+                    if(tempNonConforms.Count < (vertices.Length-(skinInd+innerVerts.Count))/2){
                     // if(nextInd != i){
                         // Debug.Log("would have hung");
-                        tempIndSpecificNonCon.Add(nextInd);
+                        tempNonConforms.Add(nextInd);
                         nonConform.Add(nextInd);
                         nextInd = i;
                         // continue;
                     }
                     else{
                         // Debug.Log("skipped backwards vertex");
-                        nonConform.RemoveAll(toRem => tempIndSpecificNonCon.Contains(toRem));
-                        tempIndSpecificNonCon.Clear();
+                        nonConform.RemoveAll(toRem => tempNonConforms.Contains(toRem));
+                        tempNonConforms.Clear();
                         
                         nonConform.Add(i);
                         nextInd = neighborSkin(i,1);
@@ -398,6 +426,14 @@ public class Soft2DSim : MonoBehaviour
             //loop through the nonconformities to find where they fit in the skin
             for(int a = 0; a < nonConform.Count; a++){
                 // Debug.Log("nonConformity: "+nonConform[a]);
+
+                //if this nonConform was in the position behind first
+                if(neighborSkin(nonConform[a],1) == start){
+                    Debug.Log("remade the first skin at index " + neighborSkin(nonConform[a],1));
+                    DestroyImmediate(children[sortedSkinInds[0]].GetComponent<Collider2D>());
+                    createCollider(sortedSkinInds[0], sortedSkinInds[1], sortedSkinInds[skinInd-1]);
+                }
+
                 //loop through the possible positions in the sorted array this deformity could go
                 // int conformStart = Array.IndexOf(skinIndSorted, neighborSkin(nonConform[a], 1));
                 int conformStart = 0;
@@ -416,8 +452,10 @@ public class Soft2DSim : MonoBehaviour
                             skinInd++;
                             unFit.Remove(nonConform[a]);
 
+                            //recreate the collider that leads to the new one
                             DestroyImmediate(children[sortedSkinInds[i]].GetComponent<Collider2D>());
                             createCollider(sortedSkinInds[i], nonConform[a], -1);
+
                             break;
                         }
                     }
@@ -452,6 +490,7 @@ public class Soft2DSim : MonoBehaviour
                     curJoint.anchor = transCenter;
                 }
             }
+            
 
             //loop through the vertices again to configure skin joints to eachother now that the colliders have been made
             Bounds oBounds;
@@ -723,11 +762,17 @@ public class Soft2DSim : MonoBehaviour
                     collid = children[i].GetComponent<BoxCollider2D>();
                     if(collid != null){
                         Vector2 dimSave = ((BoxCollider2D)collid).size;
-                        if(dimSave.x > squarEdgeRad*2 && skinThickness > squarEdgeRad*2){
-                            ((BoxCollider2D)collid).size = new Vector2(dimSave.x, skinThickness-(squarEdgeRad*2));
-                            ((BoxCollider2D)collid).edgeRadius = squarEdgeRad;
+                        if(dimSave.y < skinThickness/2){
+                            if(((BoxCollider2D)collid).edgeRadius > 0)
+                                ((BoxCollider2D)collid).edgeRadius = squarEdgeRad;
                         }
-                        else ((BoxCollider2D)collid).size = new Vector2(dimSave.x, skinThickness);
+                        else{
+                            if(((BoxCollider2D)collid).edgeRadius > 0){
+                                ((BoxCollider2D)collid).size = new Vector2(dimSave.x, skinThickness/2);
+                                ((BoxCollider2D)collid).edgeRadius = squarEdgeRad;
+                            }
+                            else ((BoxCollider2D)collid).size = new Vector2(dimSave.x, skinThickness);
+                        }
 
                         if(physMat != null) collid.sharedMaterial = physMat;
                     }
