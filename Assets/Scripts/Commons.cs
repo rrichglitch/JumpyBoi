@@ -50,23 +50,29 @@ public class Commons : Singleton<Commons>
     //super useful for scaling purposes
     //pass a second parameter of true to base the bounds on colliders instead of renderers
     static public Bounds GetWholeBounds(GameObject g, bool colliderBased = false){
-        Bounds b = new Bounds(g.transform.position, Vector3.zero);
-        Bounds temp;
-        if(colliderBased)
-            foreach (Collider2D c in g.GetComponentsInChildren<Collider2D>()){
-                temp = new Bounds(c.transform.TransformPoint(c.bounds.center), c.bounds.size);
-                b.Encapsulate(temp);
+        Bounds b;
+        if(colliderBased){
+            Collider2D[] collids = g.GetComponentsInChildren<Collider2D>();
+            if(collids.Length > 0){
+                b = new Bounds(collids[0].bounds.center, Vector3.zero);
+                foreach (Collider2D c in collids){
+                    b.Encapsulate(c.bounds);
+                }
+                return b;
             }
-        else
-            foreach (Renderer r in g.GetComponentsInChildren<Renderer>()){
-                temp = new Bounds(r.transform.TransformPoint(r.bounds.center), r.bounds.size);
-                b.Encapsulate(temp);
+        }
+        else{
+            Renderer[] renders = g.GetComponentsInChildren<Renderer>();
+            if(renders.Length > 0){
+                b = new Bounds(renders[0].bounds.center, Vector3.zero);
+                foreach (Renderer r in renders){
+                    b.Encapsulate(r.bounds);
+                }
+                return b;
             }
-        return b;
-    }
+        }
 
-    static public Bounds collidBoundsToWorld(Collider2D collid){
-        return new Bounds(collid.transform.TransformPoint(collid.bounds.center), collid.bounds.size);
+        return new Bounds(Vector3.zero, Vector3.zero);
     }
 
     //a method to get the an element the appropriate count away from an index while excluding certain indices
