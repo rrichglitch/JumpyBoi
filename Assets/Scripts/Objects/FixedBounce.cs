@@ -6,10 +6,10 @@ public class FixedBounce : MonoBehaviour
 {
     [SerializeField] private float Force = 0;
     private float lastUse = 0;
-    private List<ContactPoint2D> cps = new List<ContactPoint2D>();
-    // private Vector2 acp = new Vector2();
-    private Vector2 acpn = new Vector2();
     void OnCollisionEnter2D(Collision2D colis){
+        List<ContactPoint2D> cps = new List<ContactPoint2D>();
+    // private Vector2 acp = new Vector2();
+        Vector2 acpn = new Vector2();
         //get the average normal of this surface
         colis.otherCollider.GetContacts(cps);
         int divBy = 0;
@@ -27,21 +27,18 @@ public class FixedBounce : MonoBehaviour
             // Debug.Log(inf);
             if(inf){
                 if(inf.whole && !inf.flags.Contains("ignoreBounce")){
-                    inf.whole.AddForce(acpn*-Force);
+                    inf.whole.AddForce((acpn*-Force)-Physics2D.gravity); //minus gravity to counter gravity?
                     lastUse = Time.time;
                     // Debug.Log(acpn);
                     // Debug.Log(inf.whole.name);
                 }
             }
             else{
-                colis.rigidbody.AddForce(acpn*-Force);
+                colis.rigidbody.AddForce((acpn*-Force)-Physics2D.gravity); //minus gravity to counter gravity?
                 lastUse = Time.time;
                 // Debug.Log(acpn);
                 // Debug.Log(colis.rigidbody.name);
             }
         }
-        //reset the fields
-        cps.Clear();
-        acpn = Vector2.zero;
     }
 }
