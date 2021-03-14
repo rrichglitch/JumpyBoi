@@ -54,12 +54,13 @@ public class TongueManager : MonoBehaviour
     private void initConstraints(GameObject last, GameObject next){
         last.GetComponent<SliderJoint2D>().connectedBody = transform.parent.GetComponent<Rigidbody2D>();
         last.GetComponent<HingeJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
-        last.GetComponent<DistanceJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
+        // last.GetComponent<FrictionJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
+        //adjust specific things for th tip
         if(next.name == "Tongue_Tip"){
             Vector2 conAnc = last.GetComponent<HingeJoint2D>().connectedAnchor;
             conAnc.x *= 1.1F;
             last.GetComponent<HingeJoint2D>().connectedAnchor = conAnc;
-            last.GetComponent<DistanceJoint2D>().connectedAnchor = conAnc;
+            // last.GetComponent<FrictionJoint2D>().connectedAnchor = conAnc;
         }
         if(tongueHid.Count < 10){
             Sticky ls = last.GetComponent<Sticky>();
@@ -104,7 +105,7 @@ public class TongueManager : MonoBehaviour
                     // tip.GetComponent<Rigidbody2D>().AddRelativeForce(new Vector2(speed*.45F,0), ForceMode2D.Impulse);
                     tip.GetComponent<Rigidbody2D>().velocity = tip.TransformDirection(vel);
                     // tip.GetComponent<Info>().flags.Add("ignoreBounce");
-                    transform.parent.GetComponent<Rigidbody2D>().AddForce(tip.TransformDirection(new Vector2(speed*-.3F,0)), ForceMode2D.Impulse);
+                    transform.parent.GetComponent<Rigidbody2D>().AddForce(tip.TransformDirection(new Vector2(speed*-.2F,0)), ForceMode2D.Impulse);
                     tip.GetComponent<Sticky>().defStick();
                 }
                 else{
@@ -230,6 +231,15 @@ public class TongueManager : MonoBehaviour
             //prepare conditions for next loop
             next = getNext();
             spawnSpot = next.transform.localPosition;
+            
+            //added to hopefully reduce the mean tug at the end
+            if(tongueSegs.Count == maxSegs) killVelocity();
+        }
+    }
+    void killVelocity(){
+        Vector2 newVel = transform.parent.parent.GetComponent<Rigidbody2D>().velocity;
+        foreach( GameObject seg in tongueSegs){
+            seg.GetComponent<Rigidbody2D>().velocity = newVel;
         }
     }
     
@@ -275,7 +285,7 @@ public class TongueManager : MonoBehaviour
                     break;
                 }
             if(!someStuck)
-                transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod*.05F);
+                transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod*.1F);
             else
                 transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod);
         }
