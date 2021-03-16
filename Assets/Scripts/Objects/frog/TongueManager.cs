@@ -27,7 +27,9 @@ public class TongueManager : MonoBehaviour
     private bool tLit = false;
     private Color tCol;
     private Color fCol;
+    private Rigidbody2D holderBody;
     private DistanceJoint2D[] headDists;
+    private SpringJoint2D[] headSprings;
     private float frFrames = -1;
     public List<GameObject> tongueSegs {get; private set;} = new List<GameObject>();
     private List<GameObject> tongueHid = new List<GameObject>();
@@ -40,7 +42,9 @@ public class TongueManager : MonoBehaviour
         jawHinge = transform.parent.Find("Jaw").GetComponent<HingeJoint2D>();
         tip = transform.GetChild(0);
         tip.GetComponent<Sticky>().defStick(false);
-        headDists = transform.parent.GetComponents<DistanceJoint2D>();
+        holderBody = transform.parent.parent.GetComponent<Rigidbody2D>();
+        headDists = transform.parent.parent.GetComponents<DistanceJoint2D>();
+        headSprings = transform.parent.parent.GetComponents<SpringJoint2D>();
         tCol = tip.GetComponent<Light2D>().color;
         next = tip.gameObject;
         for(int i = 0; i < maxSegs; i++){
@@ -52,7 +56,7 @@ public class TongueManager : MonoBehaviour
         }
     }
     private void initConstraints(GameObject last, GameObject next){
-        last.GetComponent<SliderJoint2D>().connectedBody = transform.parent.GetComponent<Rigidbody2D>();
+        last.GetComponent<SliderJoint2D>().connectedBody = holderBody;
         last.GetComponent<HingeJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
         // last.GetComponent<FrictionJoint2D>().connectedBody = next.GetComponent<Rigidbody2D>();
         //adjust specific things for th tip
@@ -85,7 +89,7 @@ public class TongueManager : MonoBehaviour
 
                     //open the mouth
                     JointMotor2D mtr = jawHinge.motor;
-                    mtr.motorSpeed *= -1;
+                    mtr.motorSpeed = Mathf.Abs(mtr.motorSpeed);
                     jawHinge.motor = mtr;
 
                     // the actual change in position from velocity is velocity/50 every physics step
@@ -97,15 +101,13 @@ public class TongueManager : MonoBehaviour
                     rayStart = tip.TransformPoint(rayStart);
                     RaycastHit2D rCH2D= Physics2D.Raycast(rayStart, tip.TransformDirection(Vector2.right), speed*.01F);
                     if(rCH2D) vel.x += speed * (.05F + rCH2D.fraction);
-                    else 
-                    vel.x += speed;
+                    else vel.x += speed;
 
                     //try to kill weird rotation of tip
                     tip.GetComponent<Rigidbody2D>().angularVelocity = 0;
                     // tip.GetComponent<Rigidbody2D>().AddRelativeForce(new Vector2(speed*.45F,0), ForceMode2D.Impulse);
                     tip.GetComponent<Rigidbody2D>().velocity = tip.TransformDirection(vel);
-                    // tip.GetComponent<Info>().flags.Add("ignoreBounce");
-                    transform.parent.GetComponent<Rigidbody2D>().AddForce(tip.TransformDirection(new Vector2(speed*-.2F,0)), ForceMode2D.Impulse);
+                    holderBody.AddForce(tip.TransformDirection(new Vector2(speed*-.1F,0)), ForceMode2D.Impulse);
                     tip.GetComponent<Sticky>().defStick();
                 }
                 else{
@@ -137,7 +139,7 @@ public class TongueManager : MonoBehaviour
     }
 
     //to be called from fixedUpdate but could just go with update to avoid problems with decon
-    void frSeg(){
+    void forceRetractSeg(){
         if(frFrames > 0){
             if(tongueSegs.Count > 0){
                 putAwayNeat();
@@ -182,7 +184,7 @@ public class TongueManager : MonoBehaviour
         //stuff to run when the tongue is out
         if(tongueSegs.Count > 0){
             //tighten leash(distance joint) from head to last seg
-            if(!th || tongueSegs.Count > maxSegs-3 || transform.InverseTransformDirection(tongueSegs[tongueSegs.Count-1].GetComponent<Rigidbody2D>().velocity).x < -.1) headDists[1].distance = .12F;
+            if(!th || tongueSegs.Count > maxSegs-3 || transform.InverseTransformVector(tongueSegs[tongueSegs.Count-1].GetComponent<Rigidbody2D>().velocity).x < -.1) headDists[0].distance = .16F;
             
             if(!th){
                 peaked = true;
@@ -200,7 +202,10 @@ public class TongueManager : MonoBehaviour
         // put methods that actually move shit here so that the movement is consistent
         spawn();
         pull();
-        frSeg();
+        forceRetractSeg();
+        
+        //if the tip is getting far out then enable the long head spring
+        // headSprings[1].enabled = (Vector2.Distance(transform.position, tip.position) > headSprings[1].distance);
     }
 
     //wee helper method to set the segment second to last as "next", make sure to set next BEFORE adding "last"
@@ -226,7 +231,7 @@ public class TongueManager : MonoBehaviour
             tongueSegs.Add(last);
             setConstraints(last, next);
             //this sets the distance joint that keeps the shape of the overall tongue relative to the head
-            headDists[0].distance = width*((2)+(tongueSegs.Count*outScale*lengthMod));
+            // headDists[0].distance = width*((2)+(tongueSegs.Count*outScale*lengthMod));
 
             //prepare conditions for next loop
             next = getNext();
@@ -237,7 +242,7 @@ public class TongueManager : MonoBehaviour
         }
     }
     void killVelocity(){
-        Vector2 newVel = transform.parent.parent.GetComponent<Rigidbody2D>().velocity;
+        Vector2 newVel = holderBody.velocity;
         foreach( GameObject seg in tongueSegs){
             seg.GetComponent<Rigidbody2D>().velocity = newVel;
         }
@@ -245,12 +250,13 @@ public class TongueManager : MonoBehaviour
     
     //set the component constraints on the parameters
     private void setConstraints(GameObject last, GameObject next){
-        headDists[1].connectedBody = last.GetComponent<Rigidbody2D>();
-        last.GetComponent<SliderJoint2D>().connectedBody = transform.parent.GetComponent<Rigidbody2D>();
+        headDists[0].connectedBody = last.GetComponent<Rigidbody2D>();
+        headSprings[0].connectedBody = last.GetComponent<Rigidbody2D>();
+        last.GetComponent<SliderJoint2D>().connectedBody = holderBody;
         next.GetComponent<SliderJoint2D>().enabled = false;
         if(last.transform.localPosition.magnitude > width*outScale*1.3F){
             last.transform.rotation = Quaternion.Lerp(next.transform.rotation, transform.rotation, .5F);
-            last.GetComponent<Rigidbody2D>().velocity = (next.GetComponent<Rigidbody2D>().velocity + transform.parent.GetComponent<Rigidbody2D>().velocity)/2;
+            last.GetComponent<Rigidbody2D>().velocity = (next.GetComponent<Rigidbody2D>().velocity + holderBody.velocity)/2;
         }
     }
 
@@ -284,10 +290,10 @@ public class TongueManager : MonoBehaviour
                     someStuck = true;
                     break;
                 }
-            if(!someStuck)
-                transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod*.1F);
+            if(someStuck)
+                holderBody.AddForce(-force*mod);
             else
-                transform.parent.GetComponent<Rigidbody2D>().AddForce(-force*mod);
+                holderBody.AddForce(-force*mod*.15F);
         }
     }
 
@@ -297,7 +303,7 @@ public class TongueManager : MonoBehaviour
         if(lPos.x < width*inScale && lPos.x > -width)
             if(lPos.y < width && lPos.y > -width){
                 putAwayNeat();
-                headDists[0].distance = width*((1+outScale)+(tongueSegs.Count*outScale*lengthMod));
+                // headDists[0].distance = width*((1+outScale)+(tongueSegs.Count*outScale*lengthMod));
             }
     }
     private void putAwayNeat(){
@@ -306,7 +312,8 @@ public class TongueManager : MonoBehaviour
         s.clearSticks();
         s.defStick();
         decon(last);
-        headDists[1].connectedBody = getNext().GetComponent<Rigidbody2D>();
+        headDists[0].connectedBody = getNext().GetComponent<Rigidbody2D>();
+        headSprings[0].connectedBody = getNext().GetComponent<Rigidbody2D>();
     }
     private void decon(GameObject del){
         tongueSegs.Remove(del);
@@ -314,6 +321,7 @@ public class TongueManager : MonoBehaviour
         del.transform.position = transform.position;
         del.transform.rotation = transform.rotation;
         del.GetComponent<Rigidbody2D>().velocity = transform.parent.InverseTransformDirection(Vector2.zero);
+        tip.GetComponent<Rigidbody2D>().angularVelocity = 0;
         del.GetComponent<SliderJoint2D>().enabled = true;
     }
     
@@ -325,10 +333,12 @@ public class TongueManager : MonoBehaviour
         s.clearSticks();
         s.defStick(false);
         tip.GetComponent<Rigidbody2D>().velocity = transform.parent.InverseTransformDirection(Vector2.zero);
+        tip.GetComponent<Rigidbody2D>().angularVelocity = 0;
         tip.GetComponent<SliderJoint2D>().enabled = true;
         tip.GetComponent<FixedJoint2D>().enabled = true;
-        headDists[0].distance = 2;
-        headDists[1].distance = 2;
+        headDists[0].distance = 3;
+        // headDists[1].distance = 3;
+        // headSprings[1].enabled = false;
         // tip.GetComponent<Info>().flags.Remove("ignoreBounce");
         peaked = false;
         frFrames = -1;
@@ -336,7 +346,7 @@ public class TongueManager : MonoBehaviour
 
         //close the mouth
         JointMotor2D mtr = jawHinge.motor;
-        mtr.motorSpeed *= -1;
+        mtr.motorSpeed = -1*Mathf.Abs(mtr.motorSpeed);
         jawHinge.motor = mtr;
     }
     public bool mRadiate(object[] args){

@@ -37,7 +37,7 @@ public class Sticky : MonoBehaviour
                 fj.maxForce = force;
                 fj.maxTorque = torque;
                 SpringJoint2D sj = null;
-                if(!triggered){
+                if(freq > 0){
                     sj = gameObject.AddComponent<SpringJoint2D>();
                     sj.enableCollision = true; //this line is needed so that On(Trigger/Collision)Stay works properly
                     sj.connectedBody = oCollid.attachedRigidbody;

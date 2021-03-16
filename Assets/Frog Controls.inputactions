@@ -54,9 +54,17 @@
                     "interactions": ""
                 },
                 {
-                    "name": "Boost",
+                    "name": "BoostUp",
                     "type": "Button",
                     "id": "6ec7f7cf-2b19-45e3-806a-0e87bb358b9e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "BoostFor",
+                    "type": "Button",
+                    "id": "ff38e103-7817-4b66-8819-ae5fe3eaf1cc",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -136,7 +144,18 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Boost",
+                    "action": "BoostUp",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "edba6a27-27d8-432e-acd4-7e474d12fde8",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BoostFor",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

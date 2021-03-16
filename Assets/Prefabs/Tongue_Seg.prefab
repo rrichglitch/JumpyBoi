@@ -174,11 +174,11 @@ SliderJoint2D:
   serializedVersion: 4
   m_EnableCollision: 0
   m_ConnectedRigidBody: {fileID: 0}
-  m_BreakForce: 100000
-  m_BreakTorque: 100000
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 0
   m_Anchor: {x: 0, y: 0}
-  m_ConnectedAnchor: {x: 0.094, y: 0}
+  m_ConnectedAnchor: {x: 0.4174843, y: 0.05657196}
   m_AutoConfigureAngle: 0
   m_Angle: 0
   m_UseMotor: 0
