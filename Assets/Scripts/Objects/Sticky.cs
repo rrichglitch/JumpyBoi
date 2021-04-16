@@ -7,6 +7,7 @@ public class Sticky : MonoBehaviour
     public float force;
     public float torque;
     public float freq;
+    public string flag = "";
 
     private bool stickOn;
     private Dictionary<Collider2D, Joint2D[]> stucks = new Dictionary<Collider2D, Joint2D[]>();
@@ -46,6 +47,9 @@ public class Sticky : MonoBehaviour
                     sj.frequency = freq;
                 }
                 stucks.Add(oCollid, new Joint2D[]{fj, sj});
+                //find info component and add stiky info
+                Info inf = oCollid.GetComponent<Info>();
+                if(inf != null && flag != null && flag != "") inf.AddFlag(flag);
             }
         }
     }
@@ -53,6 +57,8 @@ public class Sticky : MonoBehaviour
     public void unStick(Collider2D oCollid){
         // Debug.Log("unstick "+ oCollid.name);
         if(stucks.ContainsKey(oCollid)){
+            Info inf = oCollid.GetComponent<Info>();
+            if(inf != null) inf.flags.Remove(flag);
             Destroy(stucks[oCollid][0]);
             Destroy(stucks[oCollid][1]);
             stucks.Remove(oCollid);

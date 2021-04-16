@@ -26,4 +26,11 @@ public class Info : MonoBehaviour
             }
         }
     }
+    public bool AddFlag(string newFlag){
+        if(!flags.Contains(newFlag)){
+            flags.Add(newFlag);
+            return true;
+        }
+        return false;
+    }
 }

@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8649912129746697331
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 933930112252695063}
+  - component: {fileID: 338120465344519492}
+  m_Layer: 0
+  m_Name: Random-Rock
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &933930112252695063
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8649912129746697331}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &338120465344519492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8649912129746697331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50dc958938bfb784784ed60597b9d1ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibles:
+  - {fileID: 8173875602960728351, guid: da989d7b81b516e429843e23b8f8470f, type: 3}
+  - {fileID: 1636918730723634417, guid: 7bf2979f9c236ab48a7c820030ef3094, type: 3}
+  - {fileID: 3794690840460445945, guid: 208d4b2c381e36442b697f8f643c1d69, type: 3}
+  - {fileID: 5572801465504445511, guid: ec3bb8c9889faa548a941cd88ad49106, type: 3}
+  - {fileID: 2213432768071218289, guid: 41b895ab4681cc447ba06681ecfa0a0f, type: 3}
+  - {fileID: 7106935861507781306, guid: 56c9d46bd964ac446a3b2d6ec0fd5a23, type: 3}
+  - {fileID: 3715897036986408733, guid: 7b79f942cb9abae439dc138f867cf881, type: 3}
+  - {fileID: 7654008261109774893, guid: e3b687e2ec2cb4d4bb588708aa8e1164, type: 3}
+  - {fileID: 5756582099241967974, guid: ed18145e9c275d54a8370a28fc426982, type: 3}
+  - {fileID: 2462105283896016686, guid: 1ee35e594c07c2f4e8c05fd764a93f90, type: 3}
+  minScale: 0.2
+  maxScale: 0.6
+  run: 1

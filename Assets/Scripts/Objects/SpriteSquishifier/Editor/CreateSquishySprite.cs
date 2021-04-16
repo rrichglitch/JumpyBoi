@@ -3,7 +3,7 @@ using UnityEditor;
 
 public class CreateSoft2DSim
 {
-    [MenuItem("GameObject/2D Object/SquishySprite")]
+    [MenuItem("GameObject/2D Object/Squishy Sprite")]
     public static void create(MenuCommand menuCommand){
         GameObject go = new GameObject("Squishy Sprite", typeof(SpriteSquishifier));
         // Ensure it gets reparented if this was a context click (otherwise does nothing)

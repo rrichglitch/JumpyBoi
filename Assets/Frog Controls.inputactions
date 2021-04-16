@@ -54,7 +54,7 @@
                     "interactions": ""
                 },
                 {
-                    "name": "BoostUp",
+                    "name": "Boost",
                     "type": "Button",
                     "id": "6ec7f7cf-2b19-45e3-806a-0e87bb358b9e",
                     "expectedControlType": "Button",
@@ -62,10 +62,10 @@
                     "interactions": ""
                 },
                 {
-                    "name": "BoostFor",
-                    "type": "Button",
+                    "name": "TurnBooster",
+                    "type": "Value",
                     "id": "ff38e103-7817-4b66-8819-ae5fe3eaf1cc",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": ""
                 }
@@ -144,20 +144,64 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "BoostUp",
+                    "action": "Boost",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "",
-                    "id": "edba6a27-27d8-432e-acd4-7e474d12fde8",
-                    "path": "<Keyboard>/a",
+                    "name": "2D Vector",
+                    "id": "a7ebf7bf-2cf1-4f46-b5a0-4f6e350de393",
+                    "path": "2DVector",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "BoostFor",
-                    "isComposite": false,
+                    "action": "TurnBooster",
+                    "isComposite": true,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "1badd5fe-1f0b-4f1e-9649-148f064b8dc7",
+                    "path": "<Keyboard>/upArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TurnBooster",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "6f9efd92-5799-4406-9ea0-8f9a05dcc330",
+                    "path": "<Keyboard>/downArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TurnBooster",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "ecf64f42-2893-4570-94a5-b1e03865f5c5",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TurnBooster",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "bbccaed6-6e3c-4ebb-89bd-30c02745582c",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TurnBooster",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         }

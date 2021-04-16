@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1505374260069596119
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3312345816071150296}
+  - component: {fileID: 7616391628638666103}
+  m_Layer: 0
+  m_Name: RandInteractTrash
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3312345816071150296
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505374260069596119}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7616391628638666103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505374260069596119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50dc958938bfb784784ed60597b9d1ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibles:
+  - {fileID: 2799767037777184889, guid: 63defe969c9ac174cae5ea89e4608bd0, type: 3}
+  - {fileID: 1628922411962844298, guid: 9479ea4bdec5e944f894a6a3978725fe, type: 3}
+  - {fileID: 7724952209926459171, guid: 49f1dd910b052204f88fa209607c1133, type: 3}
+  - {fileID: 6965755962142380338, guid: 0fb1eebe3b7c9c74687d1aa7e04463cb, type: 3}
+  - {fileID: 4559473402161055102, guid: 4f6f7c9bc8d8dd4479c55a1818827920, type: 3}
+  - {fileID: 1379617859574579462, guid: 551a2c9d13627be4dbff26b78b81e70b, type: 3}
+  - {fileID: 3873555193551605050, guid: bba399c636ac0bd47aca007128d55939, type: 3}
+  - {fileID: 4412080947508156730, guid: ab41c5885e02ad840977b5879bd694d7, type: 3}
+  - {fileID: 2883676346325497135, guid: d54d5c0ea9f11fd40934bd5850129e7b, type: 3}
+  - {fileID: 5380372863980141505, guid: 4273dfbfb26b31d468a511f911a26ecc, type: 3}
+  - {fileID: 4242128270421186998, guid: bfc4c87b17892dd4992ff0697eda2d18, type: 3}
+  minScale: 1
+  maxScale: 0
+  SortLayer: 21
+  addBody: 1
+  run: 1

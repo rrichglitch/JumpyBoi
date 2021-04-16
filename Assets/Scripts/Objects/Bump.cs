@@ -11,7 +11,7 @@ public class Bump : MonoBehaviour
     private int frog;
     private int phase;
     private Transform body;
-    private BodInfo bInf;
+    private OverlapBounds bInf;
     private TongueManager tm;
     private Vector3 oldScale;
 
@@ -20,7 +20,7 @@ public class Bump : MonoBehaviour
         frog = LayerMask.NameToLayer("Frog");
         phase = LayerMask.NameToLayer("Phase");
         body = Commons.Instance.body.transform;
-        bInf = body.GetComponent<BodInfo>();
+        bInf = body.GetComponent<OverlapBounds>();
         tm = body.Find("Head").GetChild(0).GetComponent<TongueManager>();
     }
 

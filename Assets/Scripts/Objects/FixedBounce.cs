@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class FixedBounce : MonoBehaviour
 {
-    [SerializeField] private float Force = 0;
+    [SerializeField] private float outVel = 50;
     private float lastUse = 0;
     void OnCollisionEnter2D(Collision2D colis){
         
@@ -32,15 +32,20 @@ public class FixedBounce : MonoBehaviour
         if(Time.time - lastUse >= .4){
             // Debug.Log(inf);
             if(inf && inf.whole != null){
-                inf.whole.AddForce((acpn*-Force)-Physics2D.gravity); //minus gravity to counter gravity?
-                lastUse = Time.time;
+                propegateMomentum(inf.whole, -acpn * outVel);
             }
             else{
-                colis.rigidbody.AddForce((acpn*-Force)-Physics2D.gravity); //minus gravity to counter gravity?
-                lastUse = Time.time;
+                propegateMomentum(colis.rigidbody, -acpn * outVel);
             }
-            // Debug.Log(acpn);
-            // Debug.Log(colis.rigidbody.name);
+            lastUse = Time.time;
+        }
+    }
+
+    void propegateMomentum(Rigidbody2D main, Vector2 vel){
+        foreach(Rigidbody2D rb in main.GetComponentsInChildren<Rigidbody2D>()){
+            rb.angularVelocity = 0;
+            rb.velocity = vel;
+            // Debug.Log(rb.name);
         }
     }
 }

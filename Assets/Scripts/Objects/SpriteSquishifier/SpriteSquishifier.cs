@@ -1007,7 +1007,7 @@ public class SpriteSquishifier : MonoBehaviour
             }
             updateValues();
         }
-        else if(lastSprite == null && children.Length > 0) UnityEditor.EditorApplication.delayCall+=Clear;
+        else if(children.Length > 0) UnityEditor.EditorApplication.delayCall+=Clear;
     }
     #endif
 }
