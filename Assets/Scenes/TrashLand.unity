@@ -388,7 +388,7 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: -0.25, y: 0.03}
-  m_ConnectedAnchor: {x: -0.31200027, y: -0.15600014}
+  m_ConnectedAnchor: {x: -0.31199646, y: -0.15600014}
   m_UseMotor: 1
   m_Motor:
     m_MotorSpeed: 700
@@ -2397,7 +2397,7 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: 0.31, y: 0.09}
-  m_ConnectedAnchor: {x: 0.36299896, y: 0.029999971}
+  m_ConnectedAnchor: {x: 0.36299896, y: 0.030000687}
   m_UseMotor: 1
   m_Motor:
     m_MotorSpeed: -800
@@ -3357,7 +3357,7 @@ FrictionJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: -0.18, y: 0.13}
-  m_ConnectedAnchor: {x: -0.031002045, y: -0.11349988}
+  m_ConnectedAnchor: {x: -0.03099823, y: -0.113500595}
   m_MaxForce: 0
   m_MaxTorque: 1
 --- !u!233 &228653182
@@ -3375,7 +3375,7 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: -0.18, y: 0.13}
-  m_ConnectedAnchor: {x: -0.031002045, y: -0.11349988}
+  m_ConnectedAnchor: {x: -0.03099823, y: -0.113500595}
   m_UseMotor: 1
   m_Motor:
     m_MotorSpeed: 100
@@ -4124,7 +4124,7 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: 0, y: 0}
-  m_ConnectedAnchor: {x: 0.4106903, y: 0.015062809}
+  m_ConnectedAnchor: {x: 0.4106903, y: 0.015062332}
   m_UseMotor: 1
   m_Motor:
     m_MotorSpeed: -180
@@ -4397,7 +4397,7 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: 0.07, y: 0.15}
-  m_ConnectedAnchor: {x: 0.31000137, y: -0.09399986}
+  m_ConnectedAnchor: {x: 0.30999756, y: -0.09399986}
   m_UseMotor: 0
   m_Motor:
     m_MotorSpeed: -1000
@@ -8897,6 +8897,7 @@ GameObject:
   - component: {fileID: 502556723}
   - component: {fileID: 502556722}
   - component: {fileID: 502556721}
+  - component: {fileID: 502556727}
   m_Layer: 0
   m_Name: Pit_Water
   m_TagString: Ground
@@ -9053,6 +9054,20 @@ Transform:
   m_Father: {fileID: 908788777}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &502556727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 502556720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 431a21536ae40804fb76d45c1dd86396, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnHeight: 29
+  prefab: {fileID: 5160277037836965568, guid: 3c8b298f88019a44695eabb63a900d8a, type: 3}
 --- !u!1 &506110918
 GameObject:
   m_ObjectHideFlags: 0
@@ -9749,7 +9764,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 524366854}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 53.18, y: 5.7200003, z: -10}
+  m_LocalPosition: {x: 76.28, y: 18.94, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -18042,6 +18057,7 @@ GameObject:
   - component: {fileID: 1082529593}
   - component: {fileID: 1082529592}
   - component: {fileID: 1082529591}
+  - component: {fileID: 1082529596}
   m_Layer: 0
   m_Name: Cave Puddle
   m_TagString: Ground
@@ -18198,6 +18214,20 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1082529596
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1082529589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 431a21536ae40804fb76d45c1dd86396, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnHeight: 29
+  prefab: {fileID: 5160277037836965568, guid: 3c8b298f88019a44695eabb63a900d8a, type: 3}
 --- !u!4 &1082731977 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5572801465504445509, guid: ec3bb8c9889faa548a941cd88ad49106,
@@ -19464,7 +19494,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1155999725}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 53.18, y: 3.72, z: 0}
+  m_LocalPosition: {x: 76.28, y: 16.94, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 346048111}
@@ -22587,7 +22617,7 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: -0.26, y: 0.02}
-  m_ConnectedAnchor: {x: 0.25330353, y: -0.010999918}
+  m_ConnectedAnchor: {x: 0.2532959, y: -0.01099968}
   m_UseMotor: 1
   m_Motor:
     m_MotorSpeed: 100
@@ -23175,7 +23205,7 @@ FixedJoint2D:
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 1
   m_Anchor: {x: 0, y: 0}
-  m_ConnectedAnchor: {x: -0.18999863, y: 0.15199995}
+  m_ConnectedAnchor: {x: -0.19000244, y: 0.15200043}
   m_DampingRatio: 1
   m_Frequency: 0
 --- !u!50 &1540941117
@@ -24998,7 +25028,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1678261247}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 53.18, y: 5.7200003, z: -10}
+  m_LocalPosition: {x: 76.28, y: 18.94, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 606570943}
