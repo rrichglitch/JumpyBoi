@@ -12,7 +12,7 @@ public class TranRandSeed : MonoBehaviour
     void Start(){
         if(run){
             if(maxSize > minSize){
-                float newSize = minSize+(Mathf.Lerp(minSize, maxSize, Random.value));
+                float newSize = Mathf.Lerp(minSize, maxSize, Random.value);
                 transform.localScale = new Vector3(newSize,newSize,newSize);
                 transform.localScale = new Vector3(newSize,newSize,newSize);
             }
